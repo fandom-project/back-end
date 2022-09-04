@@ -1,12 +1,15 @@
+using Fandom_Project.Data;
+using Fandom_Project.Extensions;
+using Microsoft.EntityFrameworkCore;
+using System.Data.Common;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddCors(options =>
-{
-    // Mechanism that gives rights to the user to access resources from the server on a different domain (https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)
-    options.AddPolicy("CorsPolicy", builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
-});
+builder.Services.ConfigureCors(); // Mechanism that gives rights to the user to access resources from the server on a different domain (https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)
+
+builder.Services.ConfigureMySqlContext(builder.Configuration); // Adding DatabaseContext
 
 builder.Services.AddControllers();
 
