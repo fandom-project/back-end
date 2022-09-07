@@ -188,19 +188,41 @@ namespace Fandom_Project.Controllers
             }
         }
 
-        // GET: api/Users/authenticate
-        //[HttpGet("/authenticate")]
-        //public IActionResult AuthenticateUser(string email, string password)
-        //{
-        //    try
-        //    {
-        //        _logger.LogInformation($"[{DateTime.Now}] LOG: Requesting GET api/user/authenticate");
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        _logger.LogError($"[{DateTime.Now}] ERROR: {e}");
-        //        return StatusCode(StatusCodes.Status500InternalServerError);
-        //    }
-        //}
+        // POST: api/Users/authentication
+        [HttpPost("authentication")]
+        public IActionResult UserAuthentication([FromBody]UserAuthenticationDto login)
+        {
+            try
+            {
+                _logger.LogInformation($"[{DateTime.Now}] LOG: Requesting GET api/user/authenticate");
+                if (login == null)
+                {
+                    _logger.LogError($"[{DateTime.Now}] ERROR: Email or Password cannot be null.");
+                    return StatusCode(StatusCodes.Status400BadRequest);
+                }
+                else if (!ModelState.IsValid)
+                {
+                    _logger.LogError($"[{DateTime.Now}] ERROR: Invalid data sent from client.");
+                    return StatusCode(StatusCodes.Status400BadRequest);
+                }
+
+                var email = login.Email;
+                var password = login.Password;
+
+                if(_repository.User.UserAuthentication(email, password) == false)
+                {
+                    _logger.LogError($"[{DateTime.Now}] ERROR: Invalid Email / Password was sent");
+                    return StatusCode(StatusCodes.Status401Unauthorized);
+                }
+
+                _logger.LogInformation($"[{DateTime.Now}] LOG: User with email {email} is authenticated");
+                return StatusCode(StatusCodes.Status200OK);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"[{DateTime.Now}] ERROR: {e}");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
     }
 }

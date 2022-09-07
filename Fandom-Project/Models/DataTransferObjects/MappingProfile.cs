@@ -12,6 +12,7 @@ namespace Fandom_Project.Models.DataTransferObjects
             CreateMap<User, UserDto>();
             CreateMap<UserCreationDto, User>();
             CreateMap<UserUpdateDto, User>();
+            CreateMap<UserAuthenticationDto, User>();
         }
     }
 }

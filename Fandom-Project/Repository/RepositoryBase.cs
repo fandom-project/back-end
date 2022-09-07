@@ -15,7 +15,7 @@ namespace Fandom_Project.Repository
         }
 
         public IQueryable<T> FindAll() => FandomContext.Set<T>().AsNoTracking();
-        public IQueryable<T> FindByCondition(Expression<Func<T, bool>> expression) => FandomContext.Set<T>().Where(expression).AsNoTracking();
+        public IQueryable<T> FindByCondition(Expression<Func<T, bool>> expression) => FandomContext.Set<T>().Where(expression).AsNoTracking();        
         public void Create(T entity) => FandomContext.Set<T>().Add(entity);
         public void Update(T entity) => FandomContext.Set<T>().Update(entity);
         public void Delete(T entity) => FandomContext.Set<T>().Remove(entity);

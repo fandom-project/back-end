@@ -9,5 +9,6 @@ namespace Fandom_Project.Repository.Interfaces
         void CreateUser(User user);
         void UpdateUser(User user);
         void DeleteUser(User user);
+        bool UserAuthentication(string email, string password);
     }
 }
