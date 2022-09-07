@@ -11,17 +11,12 @@ namespace Fandom_Project.Models.DataTransferObjects
 
         [Required(ErrorMessage = "The field Email is required")]
         [MaxLength(255, ErrorMessage = "The field Email must have a maximum length of 255")]
+        [EmailAddress(ErrorMessage = "Email does not have a valid format")]
         public string Email { get; set; }
 
         [Required(ErrorMessage = "The field Password is required")]
-        [MaxLength(20, ErrorMessage = "The field Password must have a maximum length of 20")]
+        [StringLength(20, MinimumLength = 6,ErrorMessage = "The field Password must have between 6 and 20 characters")]
         public string Password { get; set; }
-
-        [Required(ErrorMessage = "The field CreatedDate is required")]
-        public DateTime CreatedDate { get; set; }
-
-        [Required(ErrorMessage = "The field ModifiedDate is required")]
-        public DateTime ModifiedDate { get; set; }
 
         [MaxLength(45, ErrorMessage = "The field Slug must have a maximum length of 45")]
         public string? Slug { get; set; }

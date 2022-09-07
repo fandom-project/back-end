@@ -109,6 +109,8 @@ namespace Fandom_Project.Controllers
                 }
 
                 _mapper.Map(user, userModel);
+                
+                userModel.ModifiedDate = DateTime.Now;
 
                 _repository.User.UpdateUser(userModel);
                 _repository.Save();
@@ -144,6 +146,8 @@ namespace Fandom_Project.Controllers
                 }
 
                 var userModel = _mapper.Map<User>(user);
+                userModel.CreatedDate = DateTime.Now;
+                userModel.ModifiedDate = DateTime.Now;
 
                 _repository.User.CreateUser(userModel);
                 _repository.Save();
@@ -165,6 +169,7 @@ namespace Fandom_Project.Controllers
         {
             try
             {
+                _logger.LogInformation($"[{DateTime.Now}] LOG: Requesting DELETE api/user/{id}");
                 var user = _repository.User.GetUserById(id);
                 if(user == null)
                 {
@@ -181,6 +186,21 @@ namespace Fandom_Project.Controllers
                 _logger.LogError($"[{DateTime.Now}] ERROR: {e}");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
-        }        
+        }
+
+        // GET: api/Users/authenticate
+        //[HttpGet("/authenticate")]
+        //public IActionResult AuthenticateUser(string email, string password)
+        //{
+        //    try
+        //    {
+        //        _logger.LogInformation($"[{DateTime.Now}] LOG: Requesting GET api/user/authenticate");
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        _logger.LogError($"[{DateTime.Now}] ERROR: {e}");
+        //        return StatusCode(StatusCodes.Status500InternalServerError);
+        //    }
+        //}
     }
 }
