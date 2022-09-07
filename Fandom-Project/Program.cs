@@ -11,6 +11,10 @@ builder.Services.ConfigureCors(); // Mechanism that gives rights to the user to 
 
 builder.Services.ConfigureMySqlContext(builder.Configuration); // Adding DatabaseContext
 
+builder.Services.ConfigureRepositoryWrapper();
+
+builder.Services.AddAutoMapper(typeof(Program));
+
 builder.Services.AddControllers();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

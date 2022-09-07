@@ -7,118 +7,180 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Fandom_Project.Data;
 using Fandom_Project.Models;
+using Fandom_Project.Repository.Interfaces;
+using AutoMapper;
+using Fandom_Project.Models.DataTransferObjects;
 
 namespace Fandom_Project.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/user")]
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private readonly FandomContext _context;
+        private readonly IRepositoryWrapper _repository;
+        private readonly ILogger _logger;
+        private readonly IMapper _mapper;
 
-        public UsersController(FandomContext context)
+        public UsersController(IRepositoryWrapper repository, ILogger<UsersController> logger, IMapper mapper)
         {
-            _context = context;
+            _repository = repository;
+            _logger = logger;
+            _mapper = mapper;
         }
 
         // GET: api/Users
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetUser()
-        {
-          if (_context.User == null)
-          {
-              return NotFound();
-          }
-            return await _context.User.ToListAsync();
+        public IActionResult GetAllUsers()
+        {            
+            try
+            {                
+                _logger.LogInformation($"[{DateTime.Now}] LOG: Requesting GET api/user");
+                var users = _repository.User.GetAllUsers();
+
+                if(users == null)
+                {
+                    _logger.LogInformation($"[{DateTime.Now}] LOG: No User was found.");
+                    return StatusCode(StatusCodes.Status404NotFound);
+                }
+                
+                _logger.LogInformation($"[{DateTime.Now}] LOG: Returned all Users from the database.");
+                var usersResult = _mapper.Map<IEnumerable<UserDto>>(users);
+                return StatusCode(StatusCodes.Status200OK, usersResult);                                
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"[{DateTime.Now}] ERROR: {e}");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
         }
 
-        // GET: api/Users/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(int id)
+        // GET: api/Users/{id}
+        [HttpGet("{id}", Name = "GetUserById")]
+        public IActionResult GetUserById(int id)
         {
-          if (_context.User == null)
-          {
-              return NotFound();
-          }
-            var user = await _context.User.FindAsync(id);
-
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            return user;
-        }
-
-        // PUT: api/Users/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(int id, User user)
-        {
-            if (id != user.UserId)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(user).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UserExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+                _logger.LogInformation($"[{DateTime.Now}] LOG: Requesting GET api/user/{id}");
+                var user = _repository.User.GetUserById(id);
 
-            return NoContent();
+                if(user == null)
+                {
+                    _logger.LogInformation($"[{DateTime.Now}] LOG: User with ID {id} was not found.");
+                    return StatusCode(StatusCodes.Status404NotFound);
+                }
+                
+                _logger.LogInformation($"[{DateTime.Now}] LOG: Returned selected User from the database.");
+                var userResult = _mapper.Map<UserDto>(user);
+                return StatusCode(StatusCodes.Status200OK, userResult);                                
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"[{DateTime.Now}] ERROR: {e}");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
+
+        // PUT: api/Users/{id}
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPut("{id}")]
+        public IActionResult UpdateUser(int id, [FromBody]UserUpdateDto user)
+        {
+            try
+            {
+                _logger.LogInformation($"[{DateTime.Now}] LOG: Requesting PUT api/user/{id}");
+
+                if (user == null)
+                {
+                    _logger.LogError($"[{DateTime.Now}] ERROR: User object sent from client is null.");
+                    return StatusCode(StatusCodes.Status400BadRequest);
+                }
+                else if (!ModelState.IsValid)
+                {
+                    _logger.LogError($"[{DateTime.Now}] ERROR: Invalid User object sent from client.");
+                    return StatusCode(StatusCodes.Status400BadRequest);
+                }
+
+                var userModel = _repository.User.GetUserById(id);
+
+                if(userModel == null)
+                {
+                    _logger.LogError($"[{DateTime.Now}] ERROR: User with ID {id} was not found.");
+                    return StatusCode(StatusCodes.Status404NotFound);
+                }
+
+                _mapper.Map(user, userModel);
+
+                _repository.User.UpdateUser(userModel);
+                _repository.Save();
+
+                _logger.LogInformation($"[{DateTime.Now}] LOG: User with ID {userModel.UserId} updated.");                
+                return StatusCode(StatusCodes.Status204NoContent);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"[{DateTime.Now}] ERROR: {e}");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
         }
 
         // POST: api/Users
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<User>> PostUser(User user)
+        public IActionResult CreateUser([FromBody]UserCreationDto user)
         {
-          if (_context.User == null)
-          {
-              return Problem("Entity set 'FandomContext.User'  is null.");
-          }
-            _context.User.Add(user);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _logger.LogInformation($"[{DateTime.Now}] LOG: Requesting POST api/user");                
 
-            return CreatedAtAction("GetUser", new { id = user.UserId }, user);
+                if(user == null)
+                {
+                    _logger.LogError($"[{DateTime.Now}] ERROR: User object sent from client is null.");
+                    return StatusCode(StatusCodes.Status400BadRequest);
+                }
+                else if (!ModelState.IsValid)
+                {
+                    _logger.LogError($"[{DateTime.Now}] ERROR: Invalid User object sent from client.");
+                    return StatusCode(StatusCodes.Status400BadRequest);
+                }
+
+                var userModel = _mapper.Map<User>(user);
+
+                _repository.User.CreateUser(userModel);
+                _repository.Save();
+
+                _logger.LogInformation($"[{DateTime.Now}] LOG: User with ID {userModel.UserId} created.");
+                var createdUser = _mapper.Map<UserDto>(userModel);
+                return StatusCode(StatusCodes.Status201Created, createdUser);            
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"[{DateTime.Now}] ERROR: {e}");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
         }
 
-        // DELETE: api/Users/5
+        // DELETE: api/Users/{id}
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUser(int id)
+        public IActionResult DeleteUser(int id)
         {
-            if (_context.User == null)
+            try
             {
-                return NotFound();
+                var user = _repository.User.GetUserById(id);
+                if(user == null)
+                {
+                    _logger.LogError($"[{DateTime.Now}] ERROR: User with ID {id} was not found.");
+                    return StatusCode(StatusCodes.Status404NotFound);
+                }
+
+                _repository.User.DeleteUser(user);
+                _repository.Save();
+                return StatusCode(StatusCodes.Status204NoContent);
             }
-            var user = await _context.User.FindAsync(id);
-            if (user == null)
+            catch (Exception e)
             {
-                return NotFound();
+                _logger.LogError($"[{DateTime.Now}] ERROR: {e}");
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
-
-            _context.User.Remove(user);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool UserExists(int id)
-        {
-            return (_context.User?.Any(e => e.UserId == id)).GetValueOrDefault();
-        }
+        }        
     }
 }

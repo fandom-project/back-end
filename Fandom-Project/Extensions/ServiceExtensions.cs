@@ -1,4 +1,6 @@
 ﻿using Fandom_Project.Data;
+using Fandom_Project.Repository;
+using Fandom_Project.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Data.Common;
 
@@ -15,12 +17,24 @@ namespace Fandom_Project.Extensions
         {
             var connectionStrBuilder = new DbConnectionStringBuilder(); // Documentation for DbConnectionStringBuilder() -> https://docs.microsoft.com/en-us/dotnet/api/system.data.common.dbconnectionstringbuilder?view=net-6.0
 
-            connectionStrBuilder.Add("Server", config["Fandom-Project:DbHost"]);
-            connectionStrBuilder.Add("UserID", config["Fandom-Project:DbUser"]);
-            connectionStrBuilder.Add("Password", config["Fandom-Project:DbPassword"]);
-            connectionStrBuilder.Add("Database", config["Fandom-Project:DbName"]);
-            
+            // MySQL database on Azure
+            //connectionStrBuilder.Add("Server", config["Fandom-Project:DbHost"]);
+            //connectionStrBuilder.Add("UserID", config["Fandom-Project:DbUser"]);
+            //connectionStrBuilder.Add("Password", config["Fandom-Project:DbPassword"]);
+            //connectionStrBuilder.Add("Database", config["Fandom-Project:DbName"]);
+
+            // MySQL database on localhost
+            connectionStrBuilder.Add("Server", "localhost");
+            connectionStrBuilder.Add("UserID", "root");
+            connectionStrBuilder.Add("Password", "admin");
+            connectionStrBuilder.Add("Database", "fandom-project");
+
             services.AddDbContext<FandomContext>(options => options.UseMySql(connectionStrBuilder.ConnectionString, ServerVersion.AutoDetect(connectionStrBuilder.ConnectionString)));
+        }
+
+        public static void ConfigureRepositoryWrapper(this IServiceCollection services)
+        {
+            services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
         }
     }
 }
