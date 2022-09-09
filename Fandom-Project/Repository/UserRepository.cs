@@ -28,6 +28,20 @@ namespace Fandom_Project.Repository
             return FindByCondition(user => user.UserId.Equals(id)).FirstOrDefault();
         }
 
+        public bool ResetPassword(string email, string password)
+        {
+            var userResult = FindByCondition(user => user.Email.Equals(email)).FirstOrDefault();
+            
+            if (userResult == null)
+            {
+                return false;
+            }
+
+            userResult.Password = password;
+            Update(userResult);
+            return true;
+        }
+
         public void UpdateUser(User user)
         {
             Update(user);

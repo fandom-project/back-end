@@ -194,7 +194,8 @@ namespace Fandom_Project.Controllers
         {
             try
             {
-                _logger.LogInformation($"[{DateTime.Now}] LOG: Requesting GET api/user/authenticate");
+                _logger.LogInformation($"[{DateTime.Now}] LOG: Requesting POST api/user/authenticate");
+
                 if (login == null)
                 {
                     _logger.LogError($"[{DateTime.Now}] ERROR: Email or Password cannot be null.");
@@ -216,6 +217,44 @@ namespace Fandom_Project.Controllers
                 }
 
                 _logger.LogInformation($"[{DateTime.Now}] LOG: User with email {email} is authenticated");
+                return StatusCode(StatusCodes.Status200OK);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"[{DateTime.Now}] ERROR: {e}");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
+
+        [HttpPut("reset-password")]
+        public IActionResult ResetPassword([FromBody] UserAuthenticationDto login)
+        {
+            try
+            {
+                _logger.LogInformation($"[{DateTime.Now}] LOG: Requesting PUT api/user/reset-password");
+
+                if (login == null)
+                {
+                    _logger.LogError($"[{DateTime.Now}] ERROR: Email or Password cannot be null.");
+                    return StatusCode(StatusCodes.Status400BadRequest);
+                }
+                else if (!ModelState.IsValid)
+                {
+                    _logger.LogError($"[{DateTime.Now}] ERROR: Invalid data sent from client.");
+                    return StatusCode(StatusCodes.Status400BadRequest);
+                }
+
+                var email = login.Email;
+                var password = login.Password;
+
+                if (_repository.User.ResetPassword(email, password) == false)
+                {
+                    _logger.LogError($"[{DateTime.Now}] ERROR: No User was found using this Email.");
+                    return StatusCode(StatusCodes.Status400BadRequest);
+                }
+
+                _repository.Save();
+                _logger.LogInformation($"[{DateTime.Now}] LOG: User password was changed sucessfully");
                 return StatusCode(StatusCodes.Status200OK);
             }
             catch (Exception e)

@@ -10,5 +10,6 @@ namespace Fandom_Project.Repository.Interfaces
         void UpdateUser(User user);
         void DeleteUser(User user);
         bool UserAuthentication(string email, string password);
+        bool ResetPassword (string email, string password);
     }
 }
