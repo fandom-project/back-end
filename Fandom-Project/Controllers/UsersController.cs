@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Fandom_Project.Data;
+﻿using Microsoft.AspNetCore.Mvc;
 using Fandom_Project.Models;
 using Fandom_Project.Repository.Interfaces;
 using AutoMapper;
@@ -152,9 +145,8 @@ namespace Fandom_Project.Controllers
                 _repository.User.CreateUser(userModel);
                 _repository.Save();
 
-                _logger.LogInformation($"[{DateTime.Now}] LOG: User with ID {userModel.UserId} created.");
-                var createdUser = _mapper.Map<UserDto>(userModel);
-                return StatusCode(StatusCodes.Status201Created, createdUser);            
+                _logger.LogInformation($"[{DateTime.Now}] LOG: User with ID {userModel.UserId} created.");                
+                return StatusCode(StatusCodes.Status201Created);            
             }
             catch (Exception e)
             {
@@ -190,7 +182,7 @@ namespace Fandom_Project.Controllers
 
         // POST: api/Users/authentication
         [HttpPost("authentication")]
-        public IActionResult UserAuthentication([FromBody]UserAuthenticationDto login)
+        public IActionResult UserAuthentication([FromBody] UserAuthenticationDto login)
         {
             try
             {
