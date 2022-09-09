@@ -48,12 +48,13 @@ namespace Fandom_Project.Repository
         }
 
         public bool UserAuthentication(string email, string password)
-        {           
+        {
             // TODO: Adjust this LINQ expression to only return email and password
-            if(FindByCondition(user => user.Email.Equals(email) && user.Password.Equals(password)).FirstOrDefault() == null)
+            var userResult = FindByCondition(user => user.Email.Equals(email) && user.Password.Equals(password)).FirstOrDefault();
+            if (userResult == null)
             {
                 return false;
-            }
+            }            
             return true;
         }
     }
