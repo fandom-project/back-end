@@ -212,7 +212,7 @@ namespace Fandom_Project.Controllers
 
                 var userResult = _repository.User.UserAuthentication(email, password);
 
-                if (userResult == false)
+                if (userResult == null)
                 {
                     _logger.LogError($"[{DateTime.Now}] ERROR: Invalid Email / Password was sent");
                     return StatusCode(StatusCodes.Status401Unauthorized);
