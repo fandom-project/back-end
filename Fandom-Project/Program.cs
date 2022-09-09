@@ -1,7 +1,4 @@
-using Fandom_Project.Data;
 using Fandom_Project.Extensions;
-using Microsoft.EntityFrameworkCore;
-using System.Data.Common;
 
 var builder = WebApplication.CreateBuilder(args);
 

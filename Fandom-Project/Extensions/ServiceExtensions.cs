@@ -18,16 +18,16 @@ namespace Fandom_Project.Extensions
             var connectionStrBuilder = new DbConnectionStringBuilder(); // Documentation for DbConnectionStringBuilder() -> https://docs.microsoft.com/en-us/dotnet/api/system.data.common.dbconnectionstringbuilder?view=net-6.0
 
             // MySQL database on Azure
-            //connectionStrBuilder.Add("Server", config["Fandom-Project:DbHost"]);
-            //connectionStrBuilder.Add("UserID", config["Fandom-Project:DbUser"]);
-            //connectionStrBuilder.Add("Password", config["Fandom-Project:DbPassword"]);
-            //connectionStrBuilder.Add("Database", config["Fandom-Project:DbName"]);
+            connectionStrBuilder.Add("Server", config["Fandom-Project:DbHost"]);
+            connectionStrBuilder.Add("UserID", config["Fandom-Project:DbUser"]);
+            connectionStrBuilder.Add("Password", config["Fandom-Project:DbPassword"]);
+            connectionStrBuilder.Add("Database", config["Fandom-Project:DbName"]);
 
             // MySQL database on localhost
-            connectionStrBuilder.Add("Server", "localhost");
-            connectionStrBuilder.Add("UserID", "root");
-            connectionStrBuilder.Add("Password", "admin");
-            connectionStrBuilder.Add("Database", "fandom-project");
+            //connectionStrBuilder.Add("Server", "localhost");
+            //connectionStrBuilder.Add("UserID", "root");
+            //connectionStrBuilder.Add("Password", "admin");
+            //connectionStrBuilder.Add("Database", "fandom-project");
 
             services.AddDbContext<FandomContext>(options => options.UseMySql(connectionStrBuilder.ConnectionString, ServerVersion.AutoDetect(connectionStrBuilder.ConnectionString)));
         }
