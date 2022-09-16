@@ -30,20 +30,30 @@ namespace Fandom_Project.Controllers
                 _logger.LogInformation($"[{DateTime.Now}] LOG: Requesting GET api/user");
                 var users = _repository.User.GetAllUsers();
 
-                if(users == null)
+                if(users.Count() == 0)
                 {
                     _logger.LogInformation($"[{DateTime.Now}] LOG: No User was found.");
-                    return StatusCode(StatusCodes.Status404NotFound);
+                    return StatusCode(StatusCodes.Status404NotFound, new 
+                    { 
+                        message = "No User was found in the database." 
+                    });
                 }
                 
                 _logger.LogInformation($"[{DateTime.Now}] LOG: Returned all Users from the database.");
-                var usersResult = _mapper.Map<IEnumerable<UserDto>>(users);
-                return StatusCode(StatusCodes.Status200OK, usersResult);                                
+                var usersResult = _mapper.Map<IEnumerable<UserDto>>(users);                
+                return StatusCode(StatusCodes.Status200OK, new 
+                { 
+                    data = usersResult, 
+                    message = "Returned all Users from the database." 
+                });
             }
             catch (Exception e)
             {
                 _logger.LogError($"[{DateTime.Now}] ERROR: {e}");
-                return StatusCode(StatusCodes.Status500InternalServerError);
+                return StatusCode(StatusCodes.Status500InternalServerError, new 
+                { 
+                    message = "A error has ocurred in the service."
+                });
             }
         }
 
@@ -56,20 +66,36 @@ namespace Fandom_Project.Controllers
                 _logger.LogInformation($"[{DateTime.Now}] LOG: Requesting GET api/user/{id}");
                 var user = _repository.User.GetUserById(id);
 
+                //TODO: Add validation to check if ID is a valid number (ex: '2=' is not valid)
+                //if(id.)
+                //{
+                //    return StatusCode(StatusCodes.Status404NotFound, new { message = $"ID with value {id} is not valid." });
+                //}
                 if(user == null)
                 {
                     _logger.LogInformation($"[{DateTime.Now}] LOG: User with ID {id} was not found.");
-                    return StatusCode(StatusCodes.Status404NotFound);
+                    return StatusCode(StatusCodes.Status404NotFound, new 
+                    { 
+                        message = $"User with ID {id} was not found." 
+                    });
                 }
+
                 
                 _logger.LogInformation($"[{DateTime.Now}] LOG: Returned selected User from the database.");
                 var userResult = _mapper.Map<UserDto>(user);
-                return StatusCode(StatusCodes.Status200OK, userResult);                                
+                return StatusCode(StatusCodes.Status200OK, new 
+                { 
+                    data = userResult, 
+                    message = "Returned selected User from the database." 
+                });                                
             }
             catch (Exception e)
             {
                 _logger.LogError($"[{DateTime.Now}] ERROR: {e}");
-                return StatusCode(StatusCodes.Status500InternalServerError);
+                return StatusCode(StatusCodes.Status500InternalServerError, new 
+                { 
+                    message = "A error has ocurred in the service." 
+                });
             }
         }
 
@@ -85,12 +111,18 @@ namespace Fandom_Project.Controllers
                 if (user == null)
                 {
                     _logger.LogError($"[{DateTime.Now}] ERROR: User object sent from client is null.");
-                    return StatusCode(StatusCodes.Status400BadRequest);
+                    return StatusCode(StatusCodes.Status400BadRequest, new 
+                    { 
+                        message = $"Request data sent from client is null." 
+                    });
                 }
                 else if (!ModelState.IsValid)
                 {
                     _logger.LogError($"[{DateTime.Now}] ERROR: Invalid User object sent from client.");
-                    return StatusCode(StatusCodes.Status400BadRequest);
+                    return StatusCode(StatusCodes.Status400BadRequest, new
+                    {
+                        message = $"Invalid User object sent from client."
+                    });
                 }
 
                 var userModel = _repository.User.GetUserById(id);
@@ -98,7 +130,10 @@ namespace Fandom_Project.Controllers
                 if(userModel == null)
                 {
                     _logger.LogError($"[{DateTime.Now}] ERROR: User with ID {id} was not found.");
-                    return StatusCode(StatusCodes.Status404NotFound);
+                    return StatusCode(StatusCodes.Status404NotFound, new 
+                    { 
+                        message = $"User with ID {id} was not found." 
+                    });
                 }
 
                 _mapper.Map(user, userModel);
@@ -109,12 +144,19 @@ namespace Fandom_Project.Controllers
                 _repository.Save();
 
                 _logger.LogInformation($"[{DateTime.Now}] LOG: User with ID {userModel.UserId} updated.");                
-                return StatusCode(StatusCodes.Status204NoContent);
+                return StatusCode(StatusCodes.Status200OK, new
+                {
+                    data = userModel,
+                    message = $"Data from User with ID {id} was updated successfully."
+                });
             }
             catch (Exception e)
             {
                 _logger.LogError($"[{DateTime.Now}] ERROR: {e}");
-                return StatusCode(StatusCodes.Status500InternalServerError);
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    message = "A error has ocurred in the service."
+                });
             }
         }
 
@@ -130,12 +172,18 @@ namespace Fandom_Project.Controllers
                 if(user == null)
                 {
                     _logger.LogError($"[{DateTime.Now}] ERROR: User object sent from client is null.");
-                    return StatusCode(StatusCodes.Status400BadRequest);
+                    return StatusCode(StatusCodes.Status400BadRequest, new
+                    {
+                        message = $"User object sent from client is null."
+                    });
                 }
                 else if (!ModelState.IsValid)
                 {
                     _logger.LogError($"[{DateTime.Now}] ERROR: Invalid User object sent from client.");
-                    return StatusCode(StatusCodes.Status400BadRequest);
+                    return StatusCode(StatusCodes.Status400BadRequest, new
+                    {
+                        message = $"Invalid User object sent from client."
+                    });
                 }
 
                 var userModel = _mapper.Map<User>(user);
@@ -145,13 +193,19 @@ namespace Fandom_Project.Controllers
                 _repository.User.CreateUser(userModel);
                 _repository.Save();
 
-                _logger.LogInformation($"[{DateTime.Now}] LOG: User with ID {userModel.UserId} created.");                
-                return StatusCode(StatusCodes.Status201Created);            
+                _logger.LogInformation($"[{DateTime.Now}] LOG: User with ID {userModel.UserId} was created.");                
+                return StatusCode(StatusCodes.Status201Created, new
+                {
+                    message = $"User with ID {userModel.UserId} was created."
+                });            
             }
             catch (Exception e)
             {
                 _logger.LogError($"[{DateTime.Now}] ERROR: {e}");
-                return StatusCode(StatusCodes.Status500InternalServerError);
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    message = "A error has ocurred in the service."
+                });
             }
         }
 
@@ -166,17 +220,26 @@ namespace Fandom_Project.Controllers
                 if(user == null)
                 {
                     _logger.LogError($"[{DateTime.Now}] ERROR: User with ID {id} was not found.");
-                    return StatusCode(StatusCodes.Status404NotFound);
+                    return StatusCode(StatusCodes.Status404NotFound, new
+                    {
+                        message = $"User with ID {id} was not found."
+                    });
                 }
 
                 _repository.User.DeleteUser(user);
                 _repository.Save();
-                return StatusCode(StatusCodes.Status204NoContent);
+                return StatusCode(StatusCodes.Status204NoContent, new
+                {
+                    message = $"User with ID {id} was removed from database."
+                });
             }
             catch (Exception e)
             {
                 _logger.LogError($"[{DateTime.Now}] ERROR: {e}");
-                return StatusCode(StatusCodes.Status500InternalServerError);
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    message = "A error has ocurred in the service."
+                });
             }
         }
 
@@ -191,12 +254,18 @@ namespace Fandom_Project.Controllers
                 if (login == null)
                 {
                     _logger.LogError($"[{DateTime.Now}] ERROR: Email or Password cannot be null.");
-                    return StatusCode(StatusCodes.Status400BadRequest);
+                    return StatusCode(StatusCodes.Status400BadRequest, new
+                    {
+                        message = "Email or Password cannot be null."
+                    });
                 }
                 else if (!ModelState.IsValid)
                 {
                     _logger.LogError($"[{DateTime.Now}] ERROR: Invalid data sent from client.");
-                    return StatusCode(StatusCodes.Status400BadRequest);
+                    return StatusCode(StatusCodes.Status400BadRequest, new
+                    {
+                        message = "Invalid data sent from client."
+                    });
                 }
 
                 var email = login.Email;
@@ -206,18 +275,28 @@ namespace Fandom_Project.Controllers
 
                 if (user == null)
                 {
-                    _logger.LogError($"[{DateTime.Now}] ERROR: Invalid Email / Password was sent");
-                    return StatusCode(StatusCodes.Status401Unauthorized);
+                    _logger.LogError($"[{DateTime.Now}] ERROR: Invalid Email / Password was sent.");
+                    return StatusCode(StatusCodes.Status401Unauthorized, new
+                    {
+                        message = "Invalid Email / Password was sent."
+                    });
                 }
 
-                _logger.LogInformation($"[{DateTime.Now}] LOG: User with email {email} is authenticated");
+                _logger.LogInformation($"[{DateTime.Now}] LOG: User with email {email} is authenticated.");
                 var userResult = _mapper.Map<UserDto>(user);                
-                return StatusCode(StatusCodes.Status200OK, userResult);
+                return StatusCode(StatusCodes.Status200OK, new
+                {
+                    data = userResult,
+                    message = $"User with email {email} is authenticated."
+                });
             }
             catch (Exception e)
             {
                 _logger.LogError($"[{DateTime.Now}] ERROR: {e}");
-                return StatusCode(StatusCodes.Status500InternalServerError);
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    message = "A error has ocurred in the service."
+                });
             }
         }
 
@@ -231,12 +310,18 @@ namespace Fandom_Project.Controllers
                 if (login == null)
                 {
                     _logger.LogError($"[{DateTime.Now}] ERROR: Email or Password cannot be null.");
-                    return StatusCode(StatusCodes.Status400BadRequest);
+                    return StatusCode(StatusCodes.Status400BadRequest, new
+                    {
+                        message = "Email or Password cannot be null."
+                    });
                 }
                 else if (!ModelState.IsValid)
                 {
                     _logger.LogError($"[{DateTime.Now}] ERROR: Invalid data sent from client.");
-                    return StatusCode(StatusCodes.Status400BadRequest);
+                    return StatusCode(StatusCodes.Status400BadRequest, new
+                    {
+                        message = "Invalid data sent from client."
+                    });
                 }
 
                 var email = login.Email;
@@ -245,17 +330,26 @@ namespace Fandom_Project.Controllers
                 if (_repository.User.ResetPassword(email, password) == false)
                 {
                     _logger.LogError($"[{DateTime.Now}] ERROR: No User was found using this Email.");
-                    return StatusCode(StatusCodes.Status400BadRequest);
+                    return StatusCode(StatusCodes.Status400BadRequest, new
+                    {
+                        message = "No User was found using this Email."
+                    });
                 }
 
                 _repository.Save();
                 _logger.LogInformation($"[{DateTime.Now}] LOG: User password was changed sucessfully");
-                return StatusCode(StatusCodes.Status200OK);
+                return StatusCode(StatusCodes.Status200OK, new
+                {
+                    message = "User password was changed sucessfully."
+                });
             }
             catch (Exception e)
             {
                 _logger.LogError($"[{DateTime.Now}] ERROR: {e}");
-                return StatusCode(StatusCodes.Status500InternalServerError);
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    message = "A error has ocurred in the service."
+                });
             }
         }
     }

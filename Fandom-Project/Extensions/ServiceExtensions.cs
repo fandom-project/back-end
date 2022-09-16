@@ -23,7 +23,7 @@ namespace Fandom_Project.Extensions
             connectionStrBuilder.Add("Password", config["Fandom-Project:DbPassword"]);
             connectionStrBuilder.Add("Database", config["Fandom-Project:DbName"]);
 
-            // MySQL database on localhost
+            //// MySQL database on localhost
             //connectionStrBuilder.Add("Server", "localhost");
             //connectionStrBuilder.Add("UserID", "root");
             //connectionStrBuilder.Add("Password", "admin");
