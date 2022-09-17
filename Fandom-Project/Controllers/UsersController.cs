@@ -43,7 +43,7 @@ namespace Fandom_Project.Controllers
                 var usersResult = _mapper.Map<IEnumerable<UserDto>>(users);                
                 return StatusCode(StatusCodes.Status200OK, new 
                 { 
-                    data = usersResult, 
+                    body = usersResult, 
                     message = "Returned all Users from the database." 
                 });
             }
@@ -84,8 +84,8 @@ namespace Fandom_Project.Controllers
                 _logger.LogInformation($"[{DateTime.Now}] LOG: Returned selected User from the database.");
                 var userResult = _mapper.Map<UserDto>(user);
                 return StatusCode(StatusCodes.Status200OK, new 
-                { 
-                    data = userResult, 
+                {
+                    body = userResult, 
                     message = "Returned selected User from the database." 
                 });                                
             }
@@ -146,7 +146,7 @@ namespace Fandom_Project.Controllers
                 _logger.LogInformation($"[{DateTime.Now}] LOG: User with ID {userModel.UserId} updated.");                
                 return StatusCode(StatusCodes.Status200OK, new
                 {
-                    data = userModel,
+                    body = userModel,
                     message = $"Data from User with ID {id} was updated successfully."
                 });
             }
@@ -181,7 +181,7 @@ namespace Fandom_Project.Controllers
                 {
                     _logger.LogError($"[{DateTime.Now}] ERROR: Invalid User object sent from client.");
                     return StatusCode(StatusCodes.Status400BadRequest, new
-                    {
+                    {                        
                         message = $"Invalid User object sent from client."
                     });
                 }
@@ -196,6 +196,7 @@ namespace Fandom_Project.Controllers
                 _logger.LogInformation($"[{DateTime.Now}] LOG: User with ID {userModel.UserId} was created.");                
                 return StatusCode(StatusCodes.Status201Created, new
                 {
+                    body = userModel,
                     message = $"User with ID {userModel.UserId} was created."
                 });            
             }
@@ -286,7 +287,7 @@ namespace Fandom_Project.Controllers
                 var userResult = _mapper.Map<UserDto>(user);                
                 return StatusCode(StatusCodes.Status200OK, new
                 {
-                    data = userResult,
+                    body = userResult,
                     message = $"User with email {email} is authenticated."
                 });
             }
