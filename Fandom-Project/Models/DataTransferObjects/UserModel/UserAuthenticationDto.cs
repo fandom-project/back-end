@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Fandom_Project.Models.DataTransferObjects
+namespace Fandom_Project.Models.DataTransferObjects.UserModel
 {
     public class UserAuthenticationDto
     {

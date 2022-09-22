@@ -2,7 +2,7 @@
 using Fandom_Project.Models;
 using Fandom_Project.Repository.Interfaces;
 using AutoMapper;
-using Fandom_Project.Models.DataTransferObjects;
+using Fandom_Project.Models.DataTransferObjects.UserModel;
 
 namespace Fandom_Project.Controllers
 {
@@ -79,7 +79,6 @@ namespace Fandom_Project.Controllers
                         message = $"User with ID {id} was not found." 
                     });
                 }
-
                 
                 _logger.LogInformation($"[{DateTime.Now}] LOG: Returned selected User from the database.");
                 var userResult = _mapper.Map<UserDto>(user);
