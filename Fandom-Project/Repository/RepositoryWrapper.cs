@@ -8,6 +8,7 @@ namespace Fandom_Project.Repository
     {
         private FandomContext _fandomContext;
         private IUserRepository _user;
+        private ICategoryRepository _category;
 
         public IUserRepository User
         {
@@ -19,6 +20,18 @@ namespace Fandom_Project.Repository
                 }
                 return _user;
             }            
+        }
+
+        public ICategoryRepository Category
+        {
+            get
+            {
+                if (_category == null)
+                {
+                    _category = new CategoryRepository(_fandomContext);
+                }
+                return _category;
+            }
         }
 
         public RepositoryWrapper(FandomContext fandomContext)

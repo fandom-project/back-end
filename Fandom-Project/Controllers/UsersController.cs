@@ -2,7 +2,7 @@
 using Fandom_Project.Models;
 using Fandom_Project.Repository.Interfaces;
 using AutoMapper;
-using Fandom_Project.Models.DataTransferObjects;
+using Fandom_Project.Models.DataTransferObjects.UserModel;
 
 namespace Fandom_Project.Controllers
 {
@@ -79,7 +79,6 @@ namespace Fandom_Project.Controllers
                         message = $"User with ID {id} was not found." 
                     });
                 }
-
                 
                 _logger.LogInformation($"[{DateTime.Now}] LOG: Returned selected User from the database.");
                 var userResult = _mapper.Map<UserDto>(user);
@@ -187,8 +186,10 @@ namespace Fandom_Project.Controllers
                 }
 
                 var userModel = _mapper.Map<User>(user);
+                // Default values on User creation
                 userModel.CreatedDate = DateTime.Now;
                 userModel.ModifiedDate = DateTime.Now;
+                userModel.Slug = userModel.FullName.Replace(" ", "").ToLower();
 
                 _repository.User.CreateUser(userModel);
                 _repository.Save();

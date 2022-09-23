@@ -1,8 +1,4 @@
 ﻿#nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Fandom_Project.Models;
 
@@ -13,5 +9,8 @@ namespace Fandom_Project.Data
         public FandomContext(DbContextOptions<FandomContext> options) : base(options) { }
         
         public DbSet<User> User { get; set; }        
+        
+        public DbSet<Category> Category { get; set; }
+        public DbSet<Community> Community { get; set; }
     }
 }

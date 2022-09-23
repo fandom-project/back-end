@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Fandom_Project.Models;
-using Fandom_Project.Models.DataTransferObjects;
+using Fandom_Project.Models.DataTransferObjects.UserModel;
 
 namespace Fandom_Project.Models.DataTransferObjects
 {

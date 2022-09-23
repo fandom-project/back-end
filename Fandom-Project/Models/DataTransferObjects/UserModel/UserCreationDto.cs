@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Fandom_Project.Models.DataTransferObjects
+namespace Fandom_Project.Models.DataTransferObjects.UserModel
 {
     public class UserCreationDto
     {
@@ -14,16 +14,7 @@ namespace Fandom_Project.Models.DataTransferObjects
         public string Email { get; set; }
 
         [Required(ErrorMessage = "The field Password is required")]
-        [StringLength(20, MinimumLength = 6,ErrorMessage = "The field Password must have between 6 and 20 characters")]
-        public string Password { get; set; }
-
-        [MaxLength(45, ErrorMessage = "The field Slug must have a maximum length of 45")]
-        public string? Slug { get; set; }
-
-        [MaxLength(255, ErrorMessage = "The field ProfileAvatar must have a maximum length of 255")]
-        public string? ProfileAvatar { get; set; }
-
-        [MaxLength(255, ErrorMessage = "The field Bio must have a maximum length of 255")]
-        public string? Bio { get; set; }
+        [StringLength(20, MinimumLength = 6, ErrorMessage = "The field Password must have between 6 and 20 characters")]
+        public string Password { get; set; }        
     }
 }
