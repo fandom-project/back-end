@@ -186,8 +186,10 @@ namespace Fandom_Project.Controllers
                 }
 
                 var userModel = _mapper.Map<User>(user);
+                // Default values on User creation
                 userModel.CreatedDate = DateTime.Now;
                 userModel.ModifiedDate = DateTime.Now;
+                userModel.Slug = userModel.FullName.Replace(" ", "").ToLower();
 
                 _repository.User.CreateUser(userModel);
                 _repository.Save();
