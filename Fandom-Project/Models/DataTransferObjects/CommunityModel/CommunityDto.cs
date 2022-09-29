@@ -1,15 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace Fandom_Project.Models
+﻿namespace Fandom_Project.Models.DataTransferObjects.CommunityModel
 {
-    [Table("community")]
-    public class Community
+    public class CommunityDto
     {
-        [Key]
-        public int CommunityId { get; set; }
-        public int CategoryId { get; set; }
+        public int CommunityId { get; set; }        
         public string Name { get; set; }
+        public string CategoryName { get; set; }
         public DateTime CreationDate { get; set; }
         public DateTime ModifiedDate { get; set; }
         public int MemberCount { get; set; }

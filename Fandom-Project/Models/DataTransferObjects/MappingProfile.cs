@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Fandom_Project.Models;
+using Fandom_Project.Models.DataTransferObjects.CommunityModel;
 using Fandom_Project.Models.DataTransferObjects.UserModel;
 
 namespace Fandom_Project.Models.DataTransferObjects
@@ -9,10 +10,14 @@ namespace Fandom_Project.Models.DataTransferObjects
     {
         public MappingProfile()
         {
+            // User mapping
             CreateMap<User, UserDto>();
             CreateMap<UserCreationDto, User>();
             CreateMap<UserUpdateDto, User>();
             CreateMap<UserAuthenticationDto, User>();
+
+            // Community mapping
+            CreateMap<Community, CommunityDto>();
         }
     }
 }
