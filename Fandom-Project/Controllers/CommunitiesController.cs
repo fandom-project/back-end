@@ -122,47 +122,120 @@ namespace Fandom_Project.Controllers
             }
         }
 
-        //// PUT: api/Communities/5
-        //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        //[HttpPut("{id}")]
-        //public async Task<IActionResult> PutCommunity(int id, Community community)
-        //{
-        //    if (id != community.CommunityId)
-        //    {
-        //        return BadRequest();
-        //    }
+        // PUT: api/Communities/5
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPut("{id}")]
+        public IActionResult UpdateCommunity(int id, [FromBody] CommunityUpdateDto community)
+        {
+            try
+            {
+                _logger.LogInformation($"[{DateTime.Now}] LOG: Requesting PUT api/communities/{id}");
 
-        //    _context.Entry(community).State = EntityState.Modified;
+                if (community == null)
+                {
+                    _logger.LogError($"[{DateTime.Now}] ERROR: Community object sent from client is null.");
+                    return StatusCode(StatusCodes.Status400BadRequest, new
+                    {
+                        message = $"Request data sent from client is null."
+                    });
+                }
+                else if (!ModelState.IsValid)
+                {
+                    _logger.LogError($"[{DateTime.Now}] ERROR: Invalid Community object sent from client.");
+                    return StatusCode(StatusCodes.Status400BadRequest, new
+                    {
+                        message = $"Invalid Community object sent from client."
+                    });
+                }
 
-        //    try
-        //    {
-        //        await _context.SaveChangesAsync();
-        //    }
-        //    catch (DbUpdateConcurrencyException)
-        //    {
-        //        if (!CommunityExists(id))
-        //        {
-        //            return NotFound();
-        //        }
-        //        else
-        //        {
-        //            throw;
-        //        }
-        //    }
+                var communityModel = _repository.Community.GetCommunityById(id);
 
-        //    return NoContent();
-        //}
+                if (communityModel == null)
+                {
+                    _logger.LogError($"[{DateTime.Now}] ERROR: Community with ID {id} was not found.");
+                    return StatusCode(StatusCodes.Status404NotFound, new
+                    {
+                        message = $"Community was not found."
+                    });
+                }
 
-        //// POST: api/Communities
-        //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        //[HttpPost]
-        //public async Task<ActionResult<Community>> PostCommunity(Community community)
-        //{
-        //    _context.Community.Add(community);
-        //    await _context.SaveChangesAsync();
+                _mapper.Map(community, communityModel);
 
-        //    return CreatedAtAction("GetCommunity", new { id = community.CommunityId }, community);
-        //}
+                communityModel.ModifiedDate = DateTime.Now;
+
+                _repository.Community.UpdateCommunity(communityModel);
+                _repository.Save();
+
+                _logger.LogInformation($"[{DateTime.Now}] LOG: Community with ID {communityModel.CommunityId} updated.");
+                return StatusCode(StatusCodes.Status200OK, new
+                {
+                    body = communityModel,
+                    message = $"Data from Community was updated successfully."
+                });
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"[{DateTime.Now}] ERROR: {e}");
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    message = "A error has ocurred in the service."
+                });
+            }
+        }
+
+        // POST: api/Communities
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPost]
+        public IActionResult CreateCommunity([FromBody] CommunityCreationDto community)
+        {
+            try
+            {
+                _logger.LogInformation($"[{DateTime.Now}] LOG: Requesting POST api/communities");
+
+                if (community == null)
+                {
+                    _logger.LogError($"[{DateTime.Now}] ERROR: Community object sent from client is null.");
+                    return StatusCode(StatusCodes.Status400BadRequest, new
+                    {
+                        message = $"Community object sent from client is null."
+                    });
+                }
+                else if (!ModelState.IsValid)
+                {
+                    _logger.LogError($"[{DateTime.Now}] ERROR: Invalid Community object sent from client.");
+                    return StatusCode(StatusCodes.Status400BadRequest, new
+                    {
+                        message = $"Invalid Community object sent from client."
+                    });
+                }
+
+                var communityModel = _mapper.Map<Community>(community);
+
+                // Default values on User creation
+                communityModel.CreatedDate = DateTime.Now;
+                communityModel.ModifiedDate = DateTime.Now;
+                communityModel.Slug = communityModel.Name.Replace(" ", "-").ToLower();
+                communityModel.MemberCount = 0;
+
+                _repository.Community.CreateCommunity(communityModel);
+                _repository.Save();
+
+                _logger.LogInformation($"[{DateTime.Now}] LOG: Community was created.");
+                return StatusCode(StatusCodes.Status201Created, new
+                {
+                    body = communityModel,
+                    message = $"Community was created."
+                });
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"[{DateTime.Now}] ERROR: {e}");
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    message = "A error has ocurred in the service."
+                });
+            }
+        }
 
         //// DELETE: api/Communities/5
         //[HttpDelete("{id}")]

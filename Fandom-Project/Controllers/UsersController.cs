@@ -6,7 +6,7 @@ using Fandom_Project.Models.DataTransferObjects.UserModel;
 
 namespace Fandom_Project.Controllers
 {
-    [Route("api/user")]
+    [Route("api/users")]
     [ApiController]
     public class UsersController : ControllerBase
     {
@@ -189,16 +189,16 @@ namespace Fandom_Project.Controllers
                 // Default values on User creation
                 userModel.CreatedDate = DateTime.Now;
                 userModel.ModifiedDate = DateTime.Now;
-                userModel.Slug = userModel.FullName.Replace(" ", "").ToLower();
+                userModel.Slug = userModel.FullName.Replace(" ", "-").ToLower();
 
                 _repository.User.CreateUser(userModel);
                 _repository.Save();
 
-                _logger.LogInformation($"[{DateTime.Now}] LOG: User with ID {userModel.UserId} was created.");                
+                _logger.LogInformation($"[{DateTime.Now}] LOG: User was created.");                
                 return StatusCode(StatusCodes.Status201Created, new
                 {
                     body = userModel,
-                    message = $"User with ID {userModel.UserId} was created."
+                    message = $"User was created."
                 });            
             }
             catch (Exception e)
