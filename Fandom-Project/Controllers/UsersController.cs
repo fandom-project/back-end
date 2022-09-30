@@ -76,7 +76,7 @@ namespace Fandom_Project.Controllers
                     _logger.LogInformation($"[{DateTime.Now}] LOG: User with ID {id} was not found.");
                     return StatusCode(StatusCodes.Status404NotFound, new 
                     { 
-                        message = $"User with ID {id} was not found." 
+                        message = $"User was not found." 
                     });
                 }
                 
@@ -131,7 +131,7 @@ namespace Fandom_Project.Controllers
                     _logger.LogError($"[{DateTime.Now}] ERROR: User with ID {id} was not found.");
                     return StatusCode(StatusCodes.Status404NotFound, new 
                     { 
-                        message = $"User with ID {id} was not found." 
+                        message = $"User was not found." 
                     });
                 }
 
@@ -146,7 +146,7 @@ namespace Fandom_Project.Controllers
                 return StatusCode(StatusCodes.Status200OK, new
                 {
                     body = userModel,
-                    message = $"Data from User with ID {id} was updated successfully."
+                    message = $"Data from User was updated successfully."
                 });
             }
             catch (Exception e)
@@ -224,7 +224,7 @@ namespace Fandom_Project.Controllers
                     _logger.LogError($"[{DateTime.Now}] ERROR: User with ID {id} was not found.");
                     return StatusCode(StatusCodes.Status404NotFound, new
                     {
-                        message = $"User with ID {id} was not found."
+                        message = $"User was not found."
                     });
                 }
 
@@ -232,7 +232,7 @@ namespace Fandom_Project.Controllers
                 _repository.Save();
                 return StatusCode(StatusCodes.Status204NoContent, new
                 {
-                    message = $"User with ID {id} was removed from database."
+                    message = $"User was removed from database."
                 });
             }
             catch (Exception e)
@@ -289,7 +289,7 @@ namespace Fandom_Project.Controllers
                 return StatusCode(StatusCodes.Status200OK, new
                 {
                     body = userResult,
-                    message = $"User with email {email} is authenticated."
+                    message = $"User is authenticated."
                 });
             }
             catch (Exception e)
