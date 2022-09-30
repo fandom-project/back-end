@@ -200,12 +200,15 @@ namespace Fandom_Project.Controllers
                         message = $"Community object sent from client is null."
                     });
                 }
-                else if (!ModelState.IsValid)
+
+                var isCommunityOnDatabase = _repository.Community.FindByCondition(communityDb => communityDb.Name == community.Name).FirstOrDefault();
+
+                if (isCommunityOnDatabase != null)
                 {
-                    _logger.LogError($"[{DateTime.Now}] ERROR: Invalid Community object sent from client.");
+                    _logger.LogError($"[{DateTime.Now}] ERROR: Community already exists on database, choose another name.");
                     return StatusCode(StatusCodes.Status400BadRequest, new
                     {
-                        message = $"Invalid Community object sent from client."
+                        message = $"Community already exists on database, choose another name."
                     });
                 }
 

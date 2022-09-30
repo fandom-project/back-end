@@ -176,12 +176,15 @@ namespace Fandom_Project.Controllers
                         message = $"User object sent from client is null."
                     });
                 }
-                else if (!ModelState.IsValid)
+
+                var isEmailOnDatabase = _repository.User.FindByCondition(userDb => userDb.Email == user.Email).FirstOrDefault();
+                
+                if (isEmailOnDatabase != null)
                 {
-                    _logger.LogError($"[{DateTime.Now}] ERROR: Invalid User object sent from client.");
+                    _logger.LogError($"[{DateTime.Now}] ERROR: Email already exists on database, choose another Email.");
                     return StatusCode(StatusCodes.Status400BadRequest, new
                     {                        
-                        message = $"Invalid User object sent from client."
+                        message = $"Email already exists on database, choose another Email."
                     });
                 }
 
