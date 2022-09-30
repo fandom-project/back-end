@@ -237,26 +237,39 @@ namespace Fandom_Project.Controllers
             }
         }
 
-        //// DELETE: api/Communities/5
-        //[HttpDelete("{id}")]
-        //public async Task<IActionResult> DeleteCommunity(int id)
-        //{
-        //    var community = await _context.Community.FindAsync(id);
-        //    if (community == null)
-        //    {
-        //        return NotFound();
-        //    }
+        // DELETE: api/Communities/{id}
+        [HttpDelete("{id}")]
+        public IActionResult DeleteCommunity(int id)
+        {
+            try
+            {
+                _logger.LogInformation($"[{DateTime.Now}] LOG: Requesting DELETE api/communities/{id}");
+                var community = _repository.Community.GetCommunityById(id);
+                if (community == null)
+                {
+                    _logger.LogError($"[{DateTime.Now}] ERROR: Community with ID {id} was not found.");
+                    return StatusCode(StatusCodes.Status404NotFound, new
+                    {
+                        message = $"Community was not found."
+                    });
+                }
 
-        //    _context.Community.Remove(community);
-        //    await _context.SaveChangesAsync();
-
-        //    return NoContent();
-        //}
-
-        //private bool CommunityExists(int id)
-        //{
-        //    return _context.Community.Any(e => e.CommunityId == id);
-        //}
+                _repository.Community.DeleteCommunity(community);
+                _repository.Save();
+                return StatusCode(StatusCodes.Status200OK, new
+                {
+                    message = $"Community was removed from database."
+                });
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"[{DateTime.Now}] ERROR: {e}");
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    message = "A error has ocurred in the service."
+                });
+            }
+        }        
 
         // GET: api/Categories
         [HttpGet("categories")]
