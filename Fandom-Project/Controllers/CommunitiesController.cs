@@ -159,10 +159,24 @@ namespace Fandom_Project.Controllers
                     });
                 }
 
+                // Checking if category was updated so we need update CommunityCount on the old and new category
+                var oldCategory = new Category();
+                var newCategory = new Category();
+
+                if (communityModel.CategoryId != community.CategoryId)
+                {
+                    oldCategory = _repository.Category.FindByCondition(category => category.CategoryId.Equals(communityModel.CategoryId)).FirstOrDefault();
+                    newCategory = _repository.Category.FindByCondition(category => category.CategoryId.Equals(community.CategoryId)).FirstOrDefault();
+
+                    oldCategory.CommunityCount -= 1;
+                    newCategory.CommunityCount += 1;
+                }
+
                 _mapper.Map(community, communityModel);
+                communityModel.ModifiedDate = DateTime.Now; // Updating to the DateTime of request          
 
-                communityModel.ModifiedDate = DateTime.Now;
-
+                _repository.Category.UpdateCategory(oldCategory);
+                _repository.Category.UpdateCategory(newCategory);
                 _repository.Community.UpdateCommunity(communityModel);
                 _repository.Save();
 
@@ -220,7 +234,12 @@ namespace Fandom_Project.Controllers
                 communityModel.Slug = communityModel.Name.Replace(" ", "-").ToLower();
                 communityModel.MemberCount = 0;
 
+                // Adding +1 to Category counter
+                var categoryUpdate = _repository.Category.FindByCondition(category => category.CategoryId == community.CategoryId).FirstOrDefault();
+                categoryUpdate.CommunityCount += 1;
+                
                 _repository.Community.CreateCommunity(communityModel);
+                _repository.Category.UpdateCategory(categoryUpdate);
                 _repository.Save();
 
                 _logger.LogInformation($"[{DateTime.Now}] LOG: Community was created.");
@@ -257,7 +276,12 @@ namespace Fandom_Project.Controllers
                     });
                 }
 
+                // Adding -1 to Category counter
+                var categoryUpdate = _repository.Category.FindByCondition(category => category.CategoryId == community.CategoryId).FirstOrDefault();
+                categoryUpdate.CommunityCount -= 1;
+
                 _repository.Community.DeleteCommunity(community);
+                _repository.Category.UpdateCategory(categoryUpdate);
                 _repository.Save();
                 return StatusCode(StatusCodes.Status200OK, new
                 {
@@ -311,3 +335,4 @@ namespace Fandom_Project.Controllers
         }
     }
 }
+
