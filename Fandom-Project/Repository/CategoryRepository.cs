@@ -25,7 +25,7 @@ namespace Fandom_Project.Repository
 
         public Category GetCategoryById(int id)
         {
-            return FindByCondition(category => category.Equals(id)).FirstOrDefault();
+            return FindByCondition(category => category.CategoryId.Equals(id)).FirstOrDefault();
         }
 
         public void UpdateCategory(Category category)

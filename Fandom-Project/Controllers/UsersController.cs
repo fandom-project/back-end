@@ -6,7 +6,7 @@ using Fandom_Project.Models.DataTransferObjects.UserModel;
 
 namespace Fandom_Project.Controllers
 {
-    [Route("api/user")]
+    [Route("api/users")]
     [ApiController]
     public class UsersController : ControllerBase
     {
@@ -76,7 +76,7 @@ namespace Fandom_Project.Controllers
                     _logger.LogInformation($"[{DateTime.Now}] LOG: User with ID {id} was not found.");
                     return StatusCode(StatusCodes.Status404NotFound, new 
                     { 
-                        message = $"User with ID {id} was not found." 
+                        message = $"User was not found." 
                     });
                 }
                 
@@ -131,7 +131,7 @@ namespace Fandom_Project.Controllers
                     _logger.LogError($"[{DateTime.Now}] ERROR: User with ID {id} was not found.");
                     return StatusCode(StatusCodes.Status404NotFound, new 
                     { 
-                        message = $"User with ID {id} was not found." 
+                        message = $"User was not found." 
                     });
                 }
 
@@ -146,7 +146,7 @@ namespace Fandom_Project.Controllers
                 return StatusCode(StatusCodes.Status200OK, new
                 {
                     body = userModel,
-                    message = $"Data from User with ID {id} was updated successfully."
+                    message = $"Data from User was updated successfully."
                 });
             }
             catch (Exception e)
@@ -176,12 +176,15 @@ namespace Fandom_Project.Controllers
                         message = $"User object sent from client is null."
                     });
                 }
-                else if (!ModelState.IsValid)
+
+                var isEmailOnDatabase = _repository.User.FindByCondition(userDb => userDb.Email == user.Email).FirstOrDefault();
+                
+                if (isEmailOnDatabase != null)
                 {
-                    _logger.LogError($"[{DateTime.Now}] ERROR: Invalid User object sent from client.");
+                    _logger.LogError($"[{DateTime.Now}] ERROR: Email already exists on database, choose another Email.");
                     return StatusCode(StatusCodes.Status400BadRequest, new
                     {                        
-                        message = $"Invalid User object sent from client."
+                        message = $"Email already exists on database, choose another Email."
                     });
                 }
 
@@ -189,16 +192,16 @@ namespace Fandom_Project.Controllers
                 // Default values on User creation
                 userModel.CreatedDate = DateTime.Now;
                 userModel.ModifiedDate = DateTime.Now;
-                userModel.Slug = userModel.FullName.Replace(" ", "").ToLower();
+                userModel.Slug = userModel.FullName.Replace(" ", "-").ToLower();
 
                 _repository.User.CreateUser(userModel);
                 _repository.Save();
 
-                _logger.LogInformation($"[{DateTime.Now}] LOG: User with ID {userModel.UserId} was created.");                
+                _logger.LogInformation($"[{DateTime.Now}] LOG: User was created.");                
                 return StatusCode(StatusCodes.Status201Created, new
                 {
                     body = userModel,
-                    message = $"User with ID {userModel.UserId} was created."
+                    message = $"User was created."
                 });            
             }
             catch (Exception e)
@@ -224,7 +227,7 @@ namespace Fandom_Project.Controllers
                     _logger.LogError($"[{DateTime.Now}] ERROR: User with ID {id} was not found.");
                     return StatusCode(StatusCodes.Status404NotFound, new
                     {
-                        message = $"User with ID {id} was not found."
+                        message = $"User was not found."
                     });
                 }
 
@@ -232,7 +235,7 @@ namespace Fandom_Project.Controllers
                 _repository.Save();
                 return StatusCode(StatusCodes.Status204NoContent, new
                 {
-                    message = $"User with ID {id} was removed from database."
+                    message = $"User was removed from database."
                 });
             }
             catch (Exception e)
@@ -289,7 +292,7 @@ namespace Fandom_Project.Controllers
                 return StatusCode(StatusCodes.Status200OK, new
                 {
                     body = userResult,
-                    message = $"User with email {email} is authenticated."
+                    message = $"User is authenticated."
                 });
             }
             catch (Exception e)

@@ -9,5 +9,6 @@ namespace Fandom_Project.Models
         [Key]
         public int CategoryId { get; set; }
         public string Name { get; set; }
+        public int CommunityCount { get; set; }
     }
 }
