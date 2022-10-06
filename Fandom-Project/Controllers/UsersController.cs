@@ -3,6 +3,7 @@ using Fandom_Project.Models;
 using Fandom_Project.Repository.Interfaces;
 using AutoMapper;
 using Fandom_Project.Models.DataTransferObjects.UserModel;
+using Fandom_Project.Models.DataTransferObjects.UserCommunityModel;
 
 namespace Fandom_Project.Controllers
 {
@@ -357,5 +358,137 @@ namespace Fandom_Project.Controllers
                 });
             }
         }
+
+        [HttpPost("community")]
+        public IActionResult AddUserToCommunity(UserCommunity userCommunity)
+        {
+            try
+            {
+                if (userCommunity == null)
+                {
+                    return StatusCode(StatusCodes.Status400BadRequest, new
+                    {
+                        message = "Data sent from client cannot be null."
+                    });
+                }
+
+                // Checking if user is already on this community
+                var isUserOnCommunity = _repository.UserCommunity.FindByCondition(user => user.CommunityId.Equals(userCommunity.CommunityId) && user.UserId.Equals(userCommunity.UserId)).FirstOrDefault();
+
+                if (isUserOnCommunity != null)
+                {
+                    return StatusCode(StatusCodes.Status200OK, new
+                    {
+                        message = "User is already on this community"
+                    });
+                }
+
+                _repository.UserCommunity.Create(userCommunity);
+                _repository.Save();
+
+                return StatusCode(StatusCodes.Status201Created, new
+                {
+                    body = userCommunity,
+                    message = "User was added to this community."
+                });
+            }
+            catch
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    message = "A error has ocurred in the service."
+                });
+            }
+        }
+
+        [HttpGet("{id}/community")]
+        public IActionResult GetCommunitiesByUser(int id)
+        {
+            if(id == null)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, new
+                {
+                    message = "User ID cannot be null."
+                });
+            }
+
+            var isUserOnDatabase = _repository.User.FindByCondition(user => user.UserId.Equals(id)).FirstOrDefault();
+
+            if(isUserOnDatabase == null)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, new
+                {
+                    message = "Cannot find a user with this ID on the database."
+                });
+            }
+
+            var communities = _repository.UserCommunity.GetCommunitiesByUser(id);
+
+            if(communities.Count() == 0)
+            {
+                return StatusCode(StatusCodes.Status204NoContent, new
+                {
+                    body = communities,
+                    message = "This user has no communities atributed to him."
+                });
+            }
+
+            return StatusCode(StatusCodes.Status200OK, new
+            {
+                body = communities,
+                message = "Returned all communities of this user."
+            });
+        }
+
+        [HttpPut("{id}/community")]
+        public IActionResult UpdateUserRoleOnCommunity(int id, [FromBody] UserCommunityUpdateDto userCommunityUpdate)
+        {
+            if (userCommunityUpdate == null)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, new
+                {
+                    message = "Data sent from client cannot be null."
+                });
+            }
+
+            var isUserOnDatabase = _repository.User.FindByCondition(user => user.UserId.Equals(id)).FirstOrDefault();
+
+            if (isUserOnDatabase == null)
+            {
+                return StatusCode(StatusCodes.Status404NotFound, new
+                {
+                    body = isUserOnDatabase,
+                    message = "Cannot find a user with this ID on the database."
+                });
+            }
+
+            var userCommunitiesList = _repository.UserCommunity.FindByCondition(user => user.UserId.Equals(id)).FirstOrDefault();
+
+            if(userCommunitiesList == null)
+            {
+                return StatusCode(StatusCodes.Status404NotFound, new
+                {
+                    body = userCommunitiesList,
+                    message = "This user has no communities related to his ID."
+                });
+            }
+
+            var userCommunity = _repository.UserCommunity.FindByCondition(user => user.UserId.Equals(id) && user.CommunityId.Equals(userCommunityUpdate.CommunityId)).FirstOrDefault();
+
+            _mapper.Map(userCommunityUpdate, userCommunity);            
+            _repository.UserCommunity.Update(userCommunity);
+            _repository.Save();
+
+            return StatusCode(StatusCodes.Status200OK, new
+            {
+                body = userCommunity,
+                message = "User role updated sucessfully"
+            });
+        }
+
+        // TODO REALIZAR TESTES EM TODOS NOVOS MÉTODOS
+
+        //[HttpDelete("{id}/community")]
+        //public IActionResult RemoveUserFromCommunity
     }
 }

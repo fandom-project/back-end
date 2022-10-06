@@ -5,6 +5,7 @@
         IUserRepository User { get; }
         ICategoryRepository Category { get; }
         ICommunityRepository Community { get; }
+        IUserCommunityRepository UserCommunity { get; }
         void Save();
     }
 }

@@ -12,5 +12,6 @@ namespace Fandom_Project.Data
         
         public DbSet<Category> Category { get; set; }
         public DbSet<Community> Community { get; set; }
+        public DbSet<Community> UserCommunity { get; set; }
     }
 }
