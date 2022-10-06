@@ -3,6 +3,8 @@
     public class CommunityCreationDto
     {        
         public int CategoryId { get; set; }
-        public string Name { get; set; }     
+        public string Name { get; set; }        
+        public string? CoverImage { get; set; }
+        public string? Description { get; set; }
     }
 }
