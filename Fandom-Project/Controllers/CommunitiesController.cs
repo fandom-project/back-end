@@ -333,6 +333,53 @@ namespace Fandom_Project.Controllers
                 });
             }
         }
+
+        [HttpGet("{id}/users")]
+        public IActionResult GetUsersByCommunity(int communityId)
+        {
+            try
+            {
+                if(communityId == null)
+                {
+                    return StatusCode(StatusCodes.Status400BadRequest, new
+                    {
+                        message = "Invalid community ID, cannot be null."
+                    });
+                }
+
+                var users = _repository.UserCommunity.GetUsersByCommunity(communityId);
+
+                if(users == null)
+                {
+                    return StatusCode(StatusCodes.Status404NotFound, new
+                    {
+                        body = users,
+                        message = "Community not found with this ID."
+                    });
+                }
+                else if(users.Count() == 0)
+                {
+                    return StatusCode(StatusCodes.Status204NoContent, new
+                    {
+                        body = users,
+                        message = "There's no users in this community."
+                    });
+                }
+
+                return StatusCode(StatusCodes.Status200OK, new
+                {
+                    body = users,
+                    message = "Successfully returned all users from this community."
+                });
+            }
+            catch
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    message = "A error has ocurred in the service."
+                });
+            }
+        }        
     }
 }
 
