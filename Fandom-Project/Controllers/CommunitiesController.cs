@@ -299,40 +299,40 @@ namespace Fandom_Project.Controllers
         }        
 
         // GET: api/Categories
-        [HttpGet("categories")]
-        public IActionResult GetAllCategories()
-        {
-            try
-            {
-                _logger.LogInformation($"[{DateTime.Now}] LOG: Requesting GET api/communities/categories");
-                var categories = _repository.Category.GetAllCategories();
+        //[HttpGet("categories")]
+        //public IActionResult GetAllCategories()
+        //{
+        //    try
+        //    {
+        //        _logger.LogInformation($"[{DateTime.Now}] LOG: Requesting GET api/communities/categories");
+        //        var categories = _repository.Category.GetAllCategories();
 
-                if (categories.Count() == 0)
-                {
-                    _logger.LogInformation($"[{DateTime.Now}] LOG: No Category was found.");
-                    return StatusCode(StatusCodes.Status404NotFound, new
-                    {
-                        message = "No Category was found in the database."
-                    });
-                }
+        //        if (categories.Count() == 0)
+        //        {
+        //            _logger.LogInformation($"[{DateTime.Now}] LOG: No Category was found.");
+        //            return StatusCode(StatusCodes.Status404NotFound, new
+        //            {
+        //                message = "No Category was found in the database."
+        //            });
+        //        }
 
-                _logger.LogInformation($"[{DateTime.Now}] LOG: Returned all Categories from the database.");
+        //        _logger.LogInformation($"[{DateTime.Now}] LOG: Returned all Categories from the database.");
 
-                return StatusCode(StatusCodes.Status200OK, new
-                {
-                    body = categories,
-                    message = "Returned all Categories from the database."
-                });
-            }
-            catch (Exception e)
-            {
-                _logger.LogError($"[{DateTime.Now}] ERROR: {e}");
-                return StatusCode(StatusCodes.Status500InternalServerError, new
-                {
-                    message = "A error has ocurred in the service."
-                });
-            }
-        }
+        //        return StatusCode(StatusCodes.Status200OK, new
+        //        {
+        //            body = categories,
+        //            message = "Returned all Categories from the database."
+        //        });
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        _logger.LogError($"[{DateTime.Now}] ERROR: {e}");
+        //        return StatusCode(StatusCodes.Status500InternalServerError, new
+        //        {
+        //            message = "A error has ocurred in the service."
+        //        });
+        //    }
+        //}
 
         [HttpGet("{id}/users")]
         public IActionResult GetUsersByCommunity(int communityId)
