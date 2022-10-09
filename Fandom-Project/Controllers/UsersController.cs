@@ -4,6 +4,7 @@ using Fandom_Project.Repository.Interfaces;
 using AutoMapper;
 using Fandom_Project.Models.DataTransferObjects.UserModel;
 using Fandom_Project.Models.DataTransferObjects.UserCommunityModel;
+using Fandom_Project.Models.DataTransferObjects.CommunityModel;
 
 namespace Fandom_Project.Controllers
 {
@@ -401,17 +402,9 @@ namespace Fandom_Project.Controllers
             }
         }
 
-        [HttpGet("{id}/community")]
+        [HttpGet("{id}/communities")]
         public IActionResult GetCommunitiesByUser(int id)
-        {
-            if(id == null)
-            {
-                return StatusCode(StatusCodes.Status400BadRequest, new
-                {
-                    message = "User ID cannot be null."
-                });
-            }
-
+        {           
             var isUserOnDatabase = _repository.User.FindByCondition(user => user.UserId.Equals(id)).FirstOrDefault();
 
             if(isUserOnDatabase == null)
@@ -429,18 +422,36 @@ namespace Fandom_Project.Controllers
                 return StatusCode(StatusCodes.Status204NoContent, new
                 {
                     body = communities,
-                    message = "This user has no communities atributed to him."
+                    message = "This user has no communities followed."
                 });
+            }
+
+            var communitiesDetails = new List<Community>();
+
+            foreach(var index in communities)
+            {
+                communitiesDetails.Add(_repository.Community.GetCommunityById(index.CommunityId));
+            }
+
+            var communityResult = _mapper.Map<IEnumerable<CommunityDto>>(communitiesDetails);
+
+            var categoriesList = _repository.Category.GetAllCategories(); // Saving all categories in a variable so we don't need to keep checking database          
+
+            // Retrieving the category name for each community on the database
+            foreach (var index in communityResult)
+            {
+                var categoryId = communitiesDetails.Where(community => community.CommunityId == index.CommunityId).Select(community => community.CategoryId).FirstOrDefault();
+                index.CategoryName = Convert.ToString(categoriesList.Where(category => category.CategoryId.Equals(categoryId)).Select(category => category.Name).FirstOrDefault());
             }
 
             return StatusCode(StatusCodes.Status200OK, new
             {
-                body = communities,
+                body = communityResult,
                 message = "Returned all communities of this user."
             });
         }
 
-        [HttpPut("{id}/community")]
+        [HttpPut("{id}/communities")]
         public IActionResult UpdateUserRoleOnCommunity(int id, [FromBody] UserCommunityUpdateDto userCommunityUpdate)
         {
             if (userCommunityUpdate == null)
