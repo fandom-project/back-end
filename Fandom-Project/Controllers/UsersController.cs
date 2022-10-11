@@ -23,7 +23,15 @@ namespace Fandom_Project.Controllers
             _mapper = mapper;
         }
 
+        /// <summary>
+        /// Returns all Users added in the database
+        /// </summary>
+        /// <returns></returns>
+        /// <response code="200">Returns all Users</response>
+        /// <response code="404">No User is registered in the database</response>
         // GET: api/Users
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UserDto))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = null)]
         [HttpGet]
         public IActionResult GetAllUsers()
         {            
@@ -59,7 +67,16 @@ namespace Fandom_Project.Controllers
             }
         }
 
+        /// <summary>
+        /// Return a specific User by using it's ID
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        /// <response code="200">Returns specific User</response>
+        /// <response code="404">User was not found</response>
         // GET: api/Users/{id}
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UserDto))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = null)]
         [HttpGet("{id}", Name = "GetUserById")]
         public IActionResult GetUserById(int id)
         {
@@ -100,8 +117,19 @@ namespace Fandom_Project.Controllers
             }
         }
 
-        // PUT: api/Users/{id}
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        /// <summary>
+        /// Update data from a specific User
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        /// <response code="201">User data was updated successfully</response>
+        /// <response code="400">Request data body is null</response>
+        /// <response code="404">User ID was not found in the database</response>
+        // PUT: api/Users/{id}        
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(UserDto))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = null)]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = null)]
         [HttpPut("{id}")]
         public IActionResult UpdateUser(int id, [FromBody]UserUpdateDto user)
         {
@@ -145,7 +173,7 @@ namespace Fandom_Project.Controllers
                 _repository.Save();
 
                 _logger.LogInformation($"[{DateTime.Now}] LOG: User with ID {userModel.UserId} updated.");                
-                return StatusCode(StatusCodes.Status200OK, new
+                return StatusCode(StatusCodes.Status201Created, new
                 {
                     body = userModel,
                     message = $"Data from User was updated successfully."
@@ -161,8 +189,17 @@ namespace Fandom_Project.Controllers
             }
         }
 
-        // POST: api/Users
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        /// <summary>
+        /// Register a User on the database
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        /// <response code="201">User was registered successfully</response>
+        /// <response code="400">Request data body is null</response>
+        /// <response code="400">Email already exists in the database</response>
+        // POST: api/Users        
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(UserDto))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = null)]
         [HttpPost]
         public IActionResult CreateUser([FromBody]UserCreationDto user)
         {
@@ -179,7 +216,7 @@ namespace Fandom_Project.Controllers
                     });
                 }
 
-                var isEmailOnDatabase = _repository.User.FindByCondition(userDb => userDb.Email == user.Email).FirstOrDefault();
+                var isEmailOnDatabase = _repository.User.FindByCondition(userDb => userDb.Email.ToLower() == user.Email.ToLower()).FirstOrDefault();
                 
                 if (isEmailOnDatabase != null)
                 {
@@ -216,7 +253,16 @@ namespace Fandom_Project.Controllers
             }
         }
 
+        /// <summary>
+        /// Remove a User from the database by using it's ID
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        /// <response code="204">User was removed from database</response>
+        /// <response code="404">User ID was not found in the database</response>
         // DELETE: api/Users/{id}
+        [ProducesResponseType(StatusCodes.Status204NoContent, Type = null)]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = null)]
         [HttpDelete("{id}")]
         public IActionResult DeleteUser(int id)
         {
@@ -250,7 +296,18 @@ namespace Fandom_Project.Controllers
             }
         }
 
+        /// <summary>
+        /// Method that authenticate the User credentials in the system
+        /// </summary>
+        /// <param name="login"></param>
+        /// <returns></returns>
+        /// <response code="200">User is authenticated</response>
+        /// <response code="400">Request data body cannot be null</response>
+        /// <response code="404">Invalid Email / Password was sent</response>
         // POST: api/Users/authentication
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UserDto))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = null)]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = null)]
         [HttpPost("authentication")]
         public IActionResult UserAuthentication([FromBody] UserAuthenticationDto login)
         {
@@ -283,7 +340,7 @@ namespace Fandom_Project.Controllers
                 if (user == null)
                 {
                     _logger.LogError($"[{DateTime.Now}] ERROR: Invalid Email / Password was sent.");
-                    return StatusCode(StatusCodes.Status401Unauthorized, new
+                    return StatusCode(StatusCodes.Status404NotFound, new
                     {
                         message = "Invalid Email / Password was sent."
                     });
@@ -307,6 +364,17 @@ namespace Fandom_Project.Controllers
             }
         }
 
+        /// <summary>
+        /// User password recovery method
+        /// </summary>
+        /// <param name="login"></param>
+        /// <returns></returns>
+        /// <response code="200">User password was changed sucessfully</response>
+        /// <response code="400">Email or Password cannot be null</response>
+        /// <response code="404">No User was found using this Email</response>
+        [ProducesResponseType(StatusCodes.Status200OK, Type = null)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = null)]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = null)]
         [HttpPut("reset-password")]
         public IActionResult ResetPassword([FromBody] UserAuthenticationDto login)
         {
@@ -337,7 +405,7 @@ namespace Fandom_Project.Controllers
                 if (_repository.User.ResetPassword(email, password) == false)
                 {
                     _logger.LogError($"[{DateTime.Now}] ERROR: No User was found using this Email.");
-                    return StatusCode(StatusCodes.Status400BadRequest, new
+                    return StatusCode(StatusCodes.Status404NotFound, new
                     {
                         message = "No User was found using this Email."
                     });
@@ -360,6 +428,16 @@ namespace Fandom_Project.Controllers
             }
         }
 
+        /// <summary>
+        /// Method to register when a User has followed a specific Community
+        /// </summary>
+        /// <param name="userCommunity"></param>
+        /// <returns></returns>
+        /// <response code="201">User was added to this community</response>
+        /// <response code="400">Request data body is null</response>
+        /// <response code="400">User is already on this community</response>
+        [ProducesResponseType(StatusCodes.Status201Created, Type = null)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = null)]
         [HttpPost("community")]
         public IActionResult AddUserToCommunity(UserCommunity userCommunity)
         {
@@ -378,7 +456,7 @@ namespace Fandom_Project.Controllers
 
                 if (isUserOnCommunity != null)
                 {
-                    return StatusCode(StatusCodes.Status200OK, new
+                    return StatusCode(StatusCodes.Status400BadRequest, new
                     {
                         message = "User is already on this community"
                     });
@@ -388,8 +466,7 @@ namespace Fandom_Project.Controllers
                 _repository.Save();
 
                 return StatusCode(StatusCodes.Status201Created, new
-                {
-                    body = userCommunity,
+                {                    
                     message = "User was added to this community."
                 });
             }
@@ -402,6 +479,17 @@ namespace Fandom_Project.Controllers
             }
         }
 
+        /// <summary>
+        /// Returns all Communities a specific User has followed
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        /// <response code="200">Returned all communities of this user</response>
+        /// <response code="204">This user has no communities followed</response>
+        /// <response code="400">User ID was not found on the database</response>
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(CommunityDto))]
+        [ProducesResponseType(StatusCodes.Status204NoContent, Type = null)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = null)]
         [HttpGet("{id}/communities")]
         public IActionResult GetCommunitiesByUser(int id)
         {           
@@ -420,8 +508,7 @@ namespace Fandom_Project.Controllers
             if(communities.Count() == 0)
             {
                 return StatusCode(StatusCodes.Status204NoContent, new
-                {
-                    body = communities,
+                {                    
                     message = "This user has no communities followed."
                 });
             }
@@ -451,6 +538,19 @@ namespace Fandom_Project.Controllers
             });
         }
 
+        /// <summary>
+        /// Method to change User role in a specific community
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="userCommunityUpdate"></param>
+        /// <returns></returns>
+        /// <response code="204">User role updated sucessfully</response>
+        /// <response code="400">Request data body is null</response>
+        /// <response code="404">User ID was not found in the database</response>
+        /// <response code="404">This user has no communities related to his ID</response>
+        [ProducesResponseType(StatusCodes.Status204NoContent, Type = null)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = null)]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = null)]
         [HttpPut("{id}/communities")]
         public IActionResult UpdateUserRoleOnCommunity(int id, [FromBody] UserCommunityUpdateDto userCommunityUpdate)
         {
@@ -490,9 +590,8 @@ namespace Fandom_Project.Controllers
             _repository.UserCommunity.Update(userCommunity);
             _repository.Save();
 
-            return StatusCode(StatusCodes.Status200OK, new
-            {
-                body = userCommunity,
+            return StatusCode(StatusCodes.Status204NoContent, new
+            {                
                 message = "User role updated sucessfully"
             });
         }

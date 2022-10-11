@@ -29,7 +29,15 @@ namespace Fandom_Project.Controllers
             _mapper = mapper;
         }
 
+        /// <summary>
+        /// Returns all Communities added in the database
+        /// </summary>
+        /// <returns></returns>
+        /// <response code="404">There's no Community registered in the database</response>
+        /// <response code="200">Returned all Communities from the database</response>
         // GET: api/Communities
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(CommunityDto))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = null)]
         [HttpGet]
         public IActionResult GetAllCommunities()
         {
@@ -76,7 +84,16 @@ namespace Fandom_Project.Controllers
             }
         }
 
+        /// <summary>
+        /// Return a specific Community by using it's ID
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        /// <response code="200">Returned selected Community from the database</response>
+        /// <response code="404">Community was not found</response>
         // GET: api/Communities/{id}
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(CommunityDto))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = null)]        
         [HttpGet("{id}")]
         public IActionResult GetCommunityById(int id)
         {
@@ -95,7 +112,7 @@ namespace Fandom_Project.Controllers
                     _logger.LogInformation($"[{DateTime.Now}] LOG: Community with ID {id} was not found.");
                     return StatusCode(StatusCodes.Status404NotFound, new
                     {
-                        message = $"User was not found."
+                        message = $"Community was not found."
                     });
                 }
 
@@ -122,8 +139,19 @@ namespace Fandom_Project.Controllers
             }
         }
 
-        // PUT: api/Communities/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        /// <summary>
+        /// Update data from a specific Community
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="community"></param>
+        /// <returns></returns>
+        /// <response code="200">Data from Community was updated successfully</response>
+        /// <response code="400">Request data sent from client is null</response>
+        /// <response code="404">Community was not found</response>
+        // PUT: api/Communities/{id}        
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(CommunityDto))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = null)]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = null)]        
         [HttpPut("{id}")]
         public IActionResult UpdateCommunity(int id, [FromBody] CommunityUpdateDto community)
         {
@@ -197,8 +225,17 @@ namespace Fandom_Project.Controllers
             }
         }
 
-        // POST: api/Communities
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        /// <summary>
+        /// Register a Community on the database
+        /// </summary>
+        /// <param name="community"></param>
+        /// <returns></returns>
+        /// <response code="201">Community was created</response>
+        /// <response code="400">Request data sent from client is null</response>
+        /// <response code="400">Community already exists on database</response>
+        // POST: api/Communities        
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(CommunityDto))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = null)]
         [HttpPost]
         public IActionResult CreateCommunity([FromBody] CommunityCreationDto community)
         {
@@ -215,7 +252,7 @@ namespace Fandom_Project.Controllers
                     });
                 }
 
-                var isCommunityOnDatabase = _repository.Community.FindByCondition(communityDb => communityDb.Name == community.Name).FirstOrDefault();
+                var isCommunityOnDatabase = _repository.Community.FindByCondition(communityDb => communityDb.Name.ToLower() == community.Name.ToLower()).FirstOrDefault();
 
                 if (isCommunityOnDatabase != null)
                 {
@@ -259,7 +296,16 @@ namespace Fandom_Project.Controllers
             }
         }
 
+        /// <summary>
+        /// Remove a Community from the database by using it's ID
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        /// <response code="200">Community was removed from database</response>
+        /// <response code="404">Community was not found</response>
         // DELETE: api/Communities/{id}
+        [ProducesResponseType(StatusCodes.Status200OK, Type = null)]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = null)]
         [HttpDelete("{id}")]
         public IActionResult DeleteCommunity(int id)
         {
@@ -296,22 +342,35 @@ namespace Fandom_Project.Controllers
                     message = "A error has ocurred in the service."
                 });
             }
-        }                
+        }
 
+        /// <summary>
+        /// Returns all Users that follows a particular Community
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        /// <response code="200">Successfully returned all users from this community</response>
+        /// <response code="204">There's no Users in this Community</response>
+        /// <response code="400">Invalid Community ID</response>
+        /// <response code="404">Community not found with this ID</response>
+        [ProducesResponseType(StatusCodes.Status200OK, Type = null)]
+        [ProducesResponseType(StatusCodes.Status204NoContent, Type = null)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = null)]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = null)]
         [HttpGet("{id}/users")]
-        public IActionResult GetUsersByCommunity(int communityId)
+        public IActionResult GetUsersByCommunity(int id)
         {
             try
             {
-                if(communityId == null)
+                if(id <= 0)
                 {
                     return StatusCode(StatusCodes.Status400BadRequest, new
                     {
-                        message = "Invalid community ID, cannot be null."
+                        message = "Invalid community ID"
                     });
                 }
 
-                var users = _repository.UserCommunity.GetUsersByCommunity(communityId);
+                var users = _repository.UserCommunity.GetUsersByCommunity(id);
 
                 if(users == null)
                 {

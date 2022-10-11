@@ -29,8 +29,16 @@ namespace Fandom_Project.Controllers
             _mapper = mapper;
         }
 
+        /// <summary>
+        /// Returns all registered Categories
+        /// </summary>
+        /// <returns></returns>
+        /// <response code="200">Returns all Categories</response>
+        /// <response code="404">No Category is registered in the database</response>
         // GET: api/categories
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Category))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = null)]
         public IActionResult GetAllCategories()
         {
             try
