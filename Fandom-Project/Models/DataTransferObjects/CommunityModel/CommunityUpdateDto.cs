@@ -13,7 +13,7 @@ namespace Fandom_Project.Models.DataTransferObjects.CommunityModel
 
         [Required]
         [StringLength(45)]
-        public string? Slug { get; set; }
+        public string Slug { get; set; }
 
         [StringLength(255)]
         public string? CoverImage { get; set; }
