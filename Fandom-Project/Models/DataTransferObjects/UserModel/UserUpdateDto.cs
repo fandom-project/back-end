@@ -13,8 +13,9 @@ namespace Fandom_Project.Models.DataTransferObjects.UserModel
         [EmailAddress(ErrorMessage = "Email does not have a valid format")]
         public string Email { get; set; }
 
+        [Required]
         [MaxLength(45, ErrorMessage = "The field Slug must have a maximum length of 45")]
-        public string? Slug { get; set; }
+        public string Slug { get; set; }
 
         [MaxLength(255, ErrorMessage = "The field ProfileAvatar must have a maximum length of 255")]
         public string? ProfileAvatar { get; set; }

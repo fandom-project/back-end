@@ -24,6 +24,8 @@ namespace Fandom_Project.Models.DataTransferObjects
 
             // UserCommunity mapping
             CreateMap<UserCommunityUpdateDto, UserCommunity>();
+            CreateMap<UserCommunityDeleteDto, UserCommunity>();
+            CreateMap<UserCommunityCreateDto, UserCommunity>();
         }
     }
 }

@@ -201,7 +201,7 @@ namespace Fandom_Project.Controllers
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(UserDto))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = null)]
         [HttpPost]
-        public IActionResult CreateUser([FromBody]UserCreationDto user)
+        public IActionResult CreateUser([FromBody] UserCreationDto user)
         {
             try
             {
@@ -438,12 +438,12 @@ namespace Fandom_Project.Controllers
         /// <response code="400">User is already on this community</response>
         [ProducesResponseType(StatusCodes.Status201Created, Type = null)]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = null)]
-        [HttpPost("community")]
-        public IActionResult AddUserToCommunity(UserCommunity userCommunity)
+        [HttpPost("{id}/communities")]
+        public IActionResult AddUserToCommunity(int id, [FromBody] UserCommunityUpdateDto userCommunityUpdate)
         {
             try
             {
-                if (userCommunity == null)
+                if (userCommunityUpdate == null)
                 {
                     return StatusCode(StatusCodes.Status400BadRequest, new
                     {
@@ -452,7 +452,7 @@ namespace Fandom_Project.Controllers
                 }
 
                 // Checking if user is already on this community
-                var isUserOnCommunity = _repository.UserCommunity.FindByCondition(user => user.CommunityId.Equals(userCommunity.CommunityId) && user.UserId.Equals(userCommunity.UserId)).FirstOrDefault();
+                var isUserOnCommunity = _repository.UserCommunity.FindByCondition(user => user.CommunityId.Equals(userCommunityUpdate.CommunityId) && user.UserId.Equals(id)).FirstOrDefault();
 
                 if (isUserOnCommunity != null)
                 {
@@ -461,6 +461,9 @@ namespace Fandom_Project.Controllers
                         message = "User is already on this community"
                     });
                 }
+
+                var userCommunity = _mapper.Map<UserCommunityUpdateDto, UserCommunity>(userCommunityUpdate);
+                userCommunity.UserId = id;
 
                 _repository.UserCommunity.Create(userCommunity);
                 _repository.Save();
@@ -544,11 +547,11 @@ namespace Fandom_Project.Controllers
         /// <param name="id"></param>
         /// <param name="userCommunityUpdate"></param>
         /// <returns></returns>
-        /// <response code="204">User role updated sucessfully</response>
+        /// <response code="200">User role updated sucessfully</response>
         /// <response code="400">Request data body is null</response>
         /// <response code="404">User ID was not found in the database</response>
         /// <response code="404">This user has no communities related to his ID</response>
-        [ProducesResponseType(StatusCodes.Status204NoContent, Type = null)]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = null)]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = null)]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = null)]
         [HttpPut("{id}/communities")]
@@ -567,30 +570,26 @@ namespace Fandom_Project.Controllers
             if (isUserOnDatabase == null)
             {
                 return StatusCode(StatusCodes.Status404NotFound, new
-                {
-                    body = isUserOnDatabase,
+                {                    
                     message = "Cannot find a user with this ID on the database."
                 });
-            }
+            }         
 
-            var userCommunitiesList = _repository.UserCommunity.FindByCondition(user => user.UserId.Equals(id)).FirstOrDefault();
+            var userCommunity = _repository.UserCommunity.FindByCondition(user => user.UserId.Equals(id) && user.CommunityId.Equals(userCommunityUpdate.CommunityId)).FirstOrDefault();
 
-            if(userCommunitiesList == null)
+            if (userCommunity == null)
             {
                 return StatusCode(StatusCodes.Status404NotFound, new
                 {
-                    body = userCommunitiesList,
-                    message = "This user has no communities related to his ID."
+                    message = "The User is not registered into this Community"
                 });
             }
-
-            var userCommunity = _repository.UserCommunity.FindByCondition(user => user.UserId.Equals(id) && user.CommunityId.Equals(userCommunityUpdate.CommunityId)).FirstOrDefault();
 
             _mapper.Map(userCommunityUpdate, userCommunity);            
             _repository.UserCommunity.Update(userCommunity);
             _repository.Save();
 
-            return StatusCode(StatusCodes.Status204NoContent, new
+            return StatusCode(StatusCodes.Status200OK, new
             {                
                 message = "User role updated sucessfully"
             });
@@ -598,7 +597,10 @@ namespace Fandom_Project.Controllers
 
         // TODO REALIZAR TESTES EM TODOS NOVOS MÉTODOS
 
-        //[HttpDelete("{id}/community")]
-        //public IActionResult RemoveUserFromCommunity
+        //[HttpDelete("community")]
+        //public IActionResult RemoveUserFromCommunity(int id, int communityId)
+        //{
+
+        //}
     }
 }

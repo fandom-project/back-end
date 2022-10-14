@@ -11,6 +11,7 @@ using Fandom_Project.Repository.Interfaces;
 using AutoMapper;
 using Fandom_Project.Models.DataTransferObjects.CommunityModel;
 using System.Collections;
+using Fandom_Project.Models.DataTransferObjects.UserModel;
 
 namespace Fandom_Project.Controllers
 {
@@ -220,7 +221,7 @@ namespace Fandom_Project.Controllers
                 _logger.LogError($"[{DateTime.Now}] ERROR: {e}");
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
-                    message = "A error has ocurred in the service."
+                    message = $"A error has ocurred in the service.\nERROR: {e}"
                 });
             }
         }
@@ -339,7 +340,7 @@ namespace Fandom_Project.Controllers
                 _logger.LogError($"[{DateTime.Now}] ERROR: {e}");
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
-                    message = "A error has ocurred in the service."
+                    message = $"A error has ocurred in the service.\nERROR: {e}"
                 });
             }
         }
@@ -389,9 +390,17 @@ namespace Fandom_Project.Controllers
                     });
                 }
 
+                var communitiesDetails = new List<UserDto>();
+
+                foreach(var index in users)
+                {
+                    var tempUser = _repository.User.FindByCondition(user => user.UserId.Equals(index.UserId)).FirstOrDefault();
+                    communitiesDetails.Add(_mapper.Map<User, UserDto>(tempUser));
+                }
+
                 return StatusCode(StatusCodes.Status200OK, new
                 {
-                    body = users,
+                    body = communitiesDetails,
                     message = "Successfully returned all users from this community."
                 });
             }
