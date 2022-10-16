@@ -1,5 +1,6 @@
 ﻿using Fandom_Project.Data;
 using Fandom_Project.Repository.Interfaces;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Fandom_Project.Repository
 {
@@ -70,6 +71,11 @@ namespace Fandom_Project.Repository
         public void Save()
         {
             _fandomContext.SaveChanges();
+        }
+
+        public IDbContextTransaction BeginTransaction()
+        {
+            return _fandomContext.Database.BeginTransaction();
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace Fandom_Project.Repository.Interfaces
+﻿using Microsoft.EntityFrameworkCore.Storage;
+
+namespace Fandom_Project.Repository.Interfaces
 {
     public interface IRepositoryWrapper
     {
@@ -7,5 +9,6 @@
         ICommunityRepository Community { get; }
         IUserCommunityRepository UserCommunity { get; }
         void Save();
+        IDbContextTransaction BeginTransaction();
     }
 }
