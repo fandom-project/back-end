@@ -1,4 +1,4 @@
-﻿using System;
+﻿ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -240,60 +240,75 @@ namespace Fandom_Project.Controllers
         [HttpPost]
         public IActionResult CreateCommunity([FromBody] CommunityCreationDto community)
         {
-            try
+            using (var dbContextTransaction = _repository.BeginTransaction())
             {
-                _logger.LogInformation($"[{DateTime.Now}] LOG: Requesting POST api/communities");
-
-                if (community == null)
+                try
                 {
-                    _logger.LogError($"[{DateTime.Now}] ERROR: Community object sent from client is null.");
-                    return StatusCode(StatusCodes.Status400BadRequest, new
+                    _logger.LogInformation($"[{DateTime.Now}] LOG: Requesting POST api/communities");
+
+                    if (community == null)
                     {
-                        message = $"Community object sent from client is null."
+                        _logger.LogError($"[{DateTime.Now}] ERROR: Community object sent from client is null.");
+                        return StatusCode(StatusCodes.Status400BadRequest, new
+                        {
+                            message = $"Community object sent from client is null."
+                        });
+                    }
+
+                    var isCommunityOnDatabase = _repository.Community.FindByCondition(communityDb => communityDb.Name.ToLower() == community.Name.ToLower()).FirstOrDefault();
+
+                    if (isCommunityOnDatabase != null)
+                    {
+                        _logger.LogError($"[{DateTime.Now}] ERROR: Community already exists on database, choose another name.");
+                        return StatusCode(StatusCodes.Status400BadRequest, new
+                        {
+                            message = $"Community already exists on database, choose another name."
+                        });
+                    }
+
+                    var communityModel = _mapper.Map<Community>(community);
+
+                    // Default values on User creation
+                    communityModel.CreatedDate = DateTime.Now;
+                    communityModel.ModifiedDate = DateTime.Now;
+                    communityModel.Slug = communityModel.Name.Replace(" ", "-").ToLower();
+                    communityModel.MemberCount = 0;
+
+                    // Adding +1 to Category counter
+                    var categoryUpdate = _repository.Category.FindByCondition(category => category.CategoryId == community.CategoryId).FirstOrDefault();
+                    categoryUpdate.CommunityCount += 1;                    
+
+                    _repository.Community.CreateCommunity(communityModel);
+                    _repository.Category.UpdateCategory(categoryUpdate);
+                    _repository.Save();
+
+                    // Adding User to the created Community as Owner
+                    UserCommunity userCommunity = new UserCommunity();
+
+                    userCommunity.CommunityId = communityModel.CommunityId; // We need to extract the value after CreateCommunity() and Save()                    
+                    userCommunity.UserId = community.UserId;
+                    userCommunity.Role = "Owner";
+
+                    _repository.UserCommunity.AddUserToCommunity(userCommunity);
+                    _repository.Save();
+
+                    dbContextTransaction.Commit();
+
+                    _logger.LogInformation($"[{DateTime.Now}] LOG: Community was created.");
+                    return StatusCode(StatusCodes.Status201Created, new
+                    {                        
+                        message = $"Community was created."
                     });
                 }
-
-                var isCommunityOnDatabase = _repository.Community.FindByCondition(communityDb => communityDb.Name.ToLower() == community.Name.ToLower()).FirstOrDefault();
-
-                if (isCommunityOnDatabase != null)
+                catch (Exception e)
                 {
-                    _logger.LogError($"[{DateTime.Now}] ERROR: Community already exists on database, choose another name.");
-                    return StatusCode(StatusCodes.Status400BadRequest, new
+                    dbContextTransaction.Rollback();
+                    _logger.LogError($"[{DateTime.Now}] ERROR: {e}");
+                    return StatusCode(StatusCodes.Status500InternalServerError, new
                     {
-                        message = $"Community already exists on database, choose another name."
+                        message = "A error has ocurred in the service."
                     });
                 }
-
-                var communityModel = _mapper.Map<Community>(community);
-
-                // Default values on User creation
-                communityModel.CreatedDate = DateTime.Now;
-                communityModel.ModifiedDate = DateTime.Now;
-                communityModel.Slug = communityModel.Name.Replace(" ", "-").ToLower();
-                communityModel.MemberCount = 0;
-
-                // Adding +1 to Category counter
-                var categoryUpdate = _repository.Category.FindByCondition(category => category.CategoryId == community.CategoryId).FirstOrDefault();
-                categoryUpdate.CommunityCount += 1;
-                
-                _repository.Community.CreateCommunity(communityModel);
-                _repository.Category.UpdateCategory(categoryUpdate);
-                _repository.Save();
-
-                _logger.LogInformation($"[{DateTime.Now}] LOG: Community was created.");
-                return StatusCode(StatusCodes.Status201Created, new
-                {
-                    body = communityModel,
-                    message = $"Community was created."
-                });
-            }
-            catch (Exception e)
-            {
-                _logger.LogError($"[{DateTime.Now}] ERROR: {e}");
-                return StatusCode(StatusCodes.Status500InternalServerError, new
-                {
-                    message = "A error has ocurred in the service."
-                });
             }
         }
 
