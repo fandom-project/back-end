@@ -23,7 +23,7 @@ namespace Fandom_Project.Models.DataTransferObjects
             CreateMap<CommunityCreationDto, Community>();
 
             // UserCommunity mapping
-            CreateMap<UserCommunityUpdateDto, UserCommunity>();            
+            CreateMap<UserCommunityUpdateDto, UserCommunity>();          
             CreateMap<UserCommunityCreateDto, UserCommunity>();
         }
     }

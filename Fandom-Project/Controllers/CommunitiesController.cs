@@ -221,7 +221,7 @@ namespace Fandom_Project.Controllers
                 _logger.LogError($"[{DateTime.Now}] ERROR: {e}");
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
-                    message = $"A error has ocurred in the service.\nERROR: {e}"
+                    message = $"A error has ocurred in the service..\nERROR: {e}"
                 });
             }
         }
