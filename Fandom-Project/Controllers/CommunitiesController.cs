@@ -203,6 +203,7 @@ namespace Fandom_Project.Controllers
 
                 _mapper.Map(community, communityModel);
                 communityModel.ModifiedDate = DateTime.Now; // Updating to the DateTime of request          
+                communityModel.Slug = communityModel.Name.Replace(" ", "-").ToLower();
 
                 _repository.Category.UpdateCategory(oldCategory);
                 _repository.Category.UpdateCategory(newCategory);
