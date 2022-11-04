@@ -427,6 +427,52 @@ namespace Fandom_Project.Controllers
                     message = "A error has ocurred in the service."
                 });
             }
-        }        
+        }
+
+        /// <summary>
+        /// Return a specific Community by using it's slug
+        /// </summary>        
+        /// <returns></returns>
+        /// <response code="200">Returned selected Community from the database</response>
+        /// <response code="400">Slug query is empty</response>
+        /// <response code="404">Community was not found</response>
+        // GET: api/Communities/search?slug={slug}
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(CommunityDto))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = null)]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = null)]
+        [HttpGet("search")]
+        public IActionResult GetCommunityBySlug([FromQuery] string slug)
+        {
+            try
+            {
+                var community = _repository.Community.GetCommunityBySlug(slug.ToLower());
+
+                if (community == null)
+                {
+                    return StatusCode(StatusCodes.Status404NotFound, new
+                    {
+                        message = $"Community was not found."
+                    });
+                }
+
+                var categoryName = _repository.Category.FindByCondition(category => category.CategoryId == community.CategoryId).FirstOrDefault(); // Returning the Category name instead of the ID
+
+                var communityResult = _mapper.Map<CommunityDto>(community);
+                communityResult.CategoryName = categoryName.Name;
+
+                return StatusCode(StatusCodes.Status200OK, new
+                {
+                    body = communityResult,
+                    message = "Returned selected Community from the database."
+                });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    message = "A error has ocurred in the service."
+                });
+            }
+        }
     }
 }

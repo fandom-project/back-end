@@ -26,7 +26,12 @@ namespace Fandom_Project.Repository
         public Community GetCommunityById(int id)
         {
             return FindByCondition(community => community.CommunityId.Equals(id)).FirstOrDefault();
-        }        
+        }   
+        
+        public Community GetCommunityBySlug(string slug)
+        {
+            return FindByCondition(community => community.Slug.Equals(slug)).FirstOrDefault();
+        }
 
         public void UpdateCommunity(Community community)
         {
