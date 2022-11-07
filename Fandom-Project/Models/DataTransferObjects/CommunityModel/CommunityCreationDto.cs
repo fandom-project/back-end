@@ -18,6 +18,9 @@ namespace Fandom_Project.Models.DataTransferObjects.CommunityModel
         public string? CoverImage { get; set; }
 
         [StringLength(255)]
-        public string? Description { get; set; }        
+        public string? Description { get; set; }
+
+        [StringLength(255)]
+        public string? BannerImage { get; set; }
     }
 }
