@@ -438,12 +438,12 @@ namespace Fandom_Project.Controllers
         /// <response code="400">User is already on this community</response>
         [ProducesResponseType(StatusCodes.Status201Created, Type = null)]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = null)]
-        [HttpPost("{id}/communities")]
-        public IActionResult AddUserToCommunity(int id, [FromBody] UserCommunityUpdateDto userCommunityUpdate)
+        [HttpPost("follow")]
+        public IActionResult AddUserToCommunity([FromBody] UserCommunityCreateDto userCommunityCreate)
         {
             try
             {
-                if (userCommunityUpdate == null)
+                if (userCommunityCreate == null)
                 {
                     return StatusCode(StatusCodes.Status400BadRequest, new
                     {
@@ -452,7 +452,7 @@ namespace Fandom_Project.Controllers
                 }
 
                 // Checking if user is already on this community
-                var isUserOnCommunity = _repository.UserCommunity.FindByCondition(user => user.CommunityId.Equals(userCommunityUpdate.CommunityId) && user.UserId.Equals(id)).FirstOrDefault();
+                var isUserOnCommunity = _repository.UserCommunity.FindByCondition(user => user.CommunityId.Equals(userCommunityCreate.CommunityId) && user.UserId.Equals(userCommunityCreate.UserId)).FirstOrDefault();
 
                 if (isUserOnCommunity != null)
                 {
@@ -462,8 +462,8 @@ namespace Fandom_Project.Controllers
                     });
                 }
 
-                var userCommunity = _mapper.Map<UserCommunityUpdateDto, UserCommunity>(userCommunityUpdate);
-                userCommunity.UserId = id;
+                var userCommunity = _mapper.Map<UserCommunityCreateDto, UserCommunity>(userCommunityCreate);
+                userCommunity.UserId = userCommunityCreate.UserId;
 
                 _repository.UserCommunity.Create(userCommunity);
                 _repository.Save();
@@ -595,12 +595,51 @@ namespace Fandom_Project.Controllers
             });
         }
 
-        // TODO REALIZAR TESTES EM TODOS NOVOS MÉTODOS
+        /// <summary>
+        /// Unfollow User from a specific Community
+        /// </summary>        
+        /// <returns></returns>
+        [ProducesResponseType(StatusCodes.Status200OK, Type = null)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = null)]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = null)]
+        [HttpDelete("follow")]
+        public IActionResult RemoveUserFromCommunity([FromBody] UserCommunityDeleteDto userCommunityDelete)
+        {
+            try
+            {
+                if (userCommunityDelete == null)
+                {
+                    return StatusCode(StatusCodes.Status400BadRequest, new
+                    {
+                        message = "Invalid parameters were send."
+                    });
+                }
 
-        //[HttpDelete("community")]
-        //public IActionResult RemoveUserFromCommunity(int id, int communityId)
-        //{
+                var userCommunity = _repository.UserCommunity.FindByCondition(register => register.CommunityId.Equals(userCommunityDelete.CommunityId) && register.UserId.Equals(userCommunityDelete.UserId)).FirstOrDefault();
 
-        //}
+                if (userCommunity == null)
+                {
+                    return StatusCode(StatusCodes.Status404NotFound, new
+                    {
+                        message = "Nothing was found on database, try another User and Community ID"
+                    });
+                }
+
+                _repository.UserCommunity.Delete(userCommunity);
+                _repository.Save();
+
+                return StatusCode(StatusCodes.Status200OK, new
+                {
+                    message = "User was removed from this Community successfully"
+                });
+            }
+            catch
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    message = "A error has ocurred in the service."
+                });
+            }
+        }
     }
 }
