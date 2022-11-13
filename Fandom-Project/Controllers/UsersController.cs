@@ -427,61 +427,7 @@ namespace Fandom_Project.Controllers
                 });
             }
         }
-
-        /// <summary>
-        /// Method to register when a User has followed a specific Community
-        /// </summary>
-        /// <param name="userCommunity"></param>
-        /// <returns></returns>
-        /// <response code="201">User was added to this community</response>
-        /// <response code="400">Request data body is null</response>
-        /// <response code="400">User is already on this community</response>
-        [ProducesResponseType(StatusCodes.Status201Created, Type = null)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = null)]
-        [HttpPost("follow")]
-        public IActionResult AddUserToCommunity([FromBody] UserCommunityCreateDto userCommunityCreate)
-        {
-            try
-            {
-                if (userCommunityCreate == null)
-                {
-                    return StatusCode(StatusCodes.Status400BadRequest, new
-                    {
-                        message = "Data sent from client cannot be null."
-                    });
-                }
-
-                // Checking if user is already on this community
-                var isUserOnCommunity = _repository.UserCommunity.FindByCondition(user => user.CommunityId.Equals(userCommunityCreate.CommunityId) && user.UserId.Equals(userCommunityCreate.UserId)).FirstOrDefault();
-
-                if (isUserOnCommunity != null)
-                {
-                    return StatusCode(StatusCodes.Status400BadRequest, new
-                    {
-                        message = "User is already on this community"
-                    });
-                }
-
-                var userCommunity = _mapper.Map<UserCommunityCreateDto, UserCommunity>(userCommunityCreate);
-                userCommunity.UserId = userCommunityCreate.UserId;
-
-                _repository.UserCommunity.Create(userCommunity);
-                _repository.Save();
-
-                return StatusCode(StatusCodes.Status201Created, new
-                {                    
-                    message = "User was added to this community."
-                });
-            }
-            catch
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new
-                {
-                    message = "A error has ocurred in the service."
-                });
-            }
-        }
-
+        
         /// <summary>
         /// Returns all Communities a specific User has followed
         /// </summary>
@@ -593,53 +539,6 @@ namespace Fandom_Project.Controllers
             {                
                 message = "User role updated sucessfully"
             });
-        }
-
-        /// <summary>
-        /// Unfollow User from a specific Community
-        /// </summary>        
-        /// <returns></returns>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = null)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = null)]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = null)]
-        [HttpDelete("follow")]
-        public IActionResult RemoveUserFromCommunity([FromBody] UserCommunityDeleteDto userCommunityDelete)
-        {
-            try
-            {
-                if (userCommunityDelete == null)
-                {
-                    return StatusCode(StatusCodes.Status400BadRequest, new
-                    {
-                        message = "Invalid parameters were send."
-                    });
-                }
-
-                var userCommunity = _repository.UserCommunity.FindByCondition(register => register.CommunityId.Equals(userCommunityDelete.CommunityId) && register.UserId.Equals(userCommunityDelete.UserId)).FirstOrDefault();
-
-                if (userCommunity == null)
-                {
-                    return StatusCode(StatusCodes.Status404NotFound, new
-                    {
-                        message = "Nothing was found on database, try another User and Community ID"
-                    });
-                }
-
-                _repository.UserCommunity.Delete(userCommunity);
-                _repository.Save();
-
-                return StatusCode(StatusCodes.Status200OK, new
-                {
-                    message = "User was removed from this Community successfully"
-                });
-            }
-            catch
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new
-                {
-                    message = "A error has ocurred in the service."
-                });
-            }
         }
     }
 }

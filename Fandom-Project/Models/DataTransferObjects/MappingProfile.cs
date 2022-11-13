@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Fandom_Project.Models;
 using Fandom_Project.Models.DataTransferObjects.CommunityModel;
+using Fandom_Project.Models.DataTransferObjects.PostModel;
 using Fandom_Project.Models.DataTransferObjects.UserCommunityModel;
 using Fandom_Project.Models.DataTransferObjects.UserModel;
 
@@ -26,6 +27,10 @@ namespace Fandom_Project.Models.DataTransferObjects
             CreateMap<UserCommunityUpdateDto, UserCommunity>();          
             CreateMap<UserCommunityCreateDto, UserCommunity>();
             CreateMap<UserCommunityDeleteDto, UserCommunity>();
+
+            // Posts mapping
+            CreateMap<Post, PostDto>();
+            CreateMap<PostCreateDto, Post>();
         }
     }
 }

@@ -12,6 +12,7 @@ namespace Fandom_Project.Repository
         private ICategoryRepository _category;
         private ICommunityRepository _community;
         private IUserCommunityRepository _userCommunity;
+        private IPostRepository _post;
 
         public IUserRepository User
         {
@@ -58,6 +59,18 @@ namespace Fandom_Project.Repository
                     _userCommunity = new UserCommunityRepository(_fandomContext);
                 }
                 return _userCommunity;
+            }
+        }
+
+        public IPostRepository Post
+        {
+            get
+            {
+                if (_post == null)
+                {
+                    _post = new PostRepository(_fandomContext);
+                }
+                return _post;
             }
         }
 

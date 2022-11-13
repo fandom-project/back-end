@@ -1,4 +1,4 @@
-﻿ using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,6 +12,8 @@ using AutoMapper;
 using Fandom_Project.Models.DataTransferObjects.CommunityModel;
 using System.Collections;
 using Fandom_Project.Models.DataTransferObjects.UserModel;
+using Fandom_Project.Models.DataTransferObjects.UserCommunityModel;
+using Fandom_Project.Models.DataTransferObjects.PostModel;
 
 namespace Fandom_Project.Controllers
 {
@@ -467,6 +469,243 @@ namespace Fandom_Project.Controllers
                 });
             }
             catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    message = "A error has ocurred in the service."
+                });
+            }
+        }
+
+        /// <summary>
+        /// Return all Posts registered on this Community
+        /// </summary>
+        /// <returns></returns>
+        /// <response code="200">Retrived all Posts created for this Community</response>
+        /// <response code="204">There is no Posts registered to this Community</response>
+        /// <response code="400">Invalid Community ID was sent from the client</response>
+        /// <response code="404">A Community with this ID doesn't exist on the database</response>        
+        // GET: api/Communities/{id}/posts
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PostDto))]
+        [ProducesResponseType(StatusCodes.Status204NoContent, Type = null)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = null)]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = null)]
+        [HttpGet("{id}/posts")]
+        public IActionResult GetPostsByCommunity(int id)
+        {
+            try
+            {
+                if (id <= 0)
+                {
+                    return StatusCode(StatusCodes.Status400BadRequest, new
+                    {
+                        message = "Invalid Community ID was sent from the client"
+                    });
+                }
+
+                Community isCommunityOnDatabase = _repository.Community.GetCommunityById(id);
+
+                if (isCommunityOnDatabase == null)
+                {
+                    return StatusCode(StatusCodes.Status404NotFound, new
+                    {
+                        message = "A Community with this ID doesn't exist on the database"
+                    });
+                }
+
+                IEnumerable<Post> posts = _repository.Post.GetPostsByCommunity(id);
+
+                if(posts.Count() == 0)
+                {
+                    return StatusCode(StatusCodes.Status204NoContent);
+                }
+
+                // Converting to the Data Model
+                List<PostDto> postsResult = new List<PostDto>();
+
+                foreach(var index in posts)
+                {
+                    postsResult.Add(_mapper.Map<Post, PostDto>(index));
+                }
+                
+                return StatusCode(StatusCodes.Status200OK, new
+                {
+                    body = postsResult,
+                    message = "Retrived all Posts created for this Community"
+                });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    message = "A error has ocurred in the service." + $"\n{e}"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Register a new Post to a Community
+        /// </summary>
+        /// <returns></returns>
+        /// <response code="201">Post successfully registered on the Community</response>
+        /// <response code="400">Invalid Community ID was sent from the client</response>
+        /// <response code="400">Data from request body is null.</response>
+        /// <response code="404">A Community with this ID doesn't exist on the database</response>
+        // POST: api/Communities/{id}/posts
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(PostDto))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = null)]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = null)]
+        [HttpPost("{id}/posts")]
+        public IActionResult AddPostToCommunity(int id, [FromBody] PostCreateDto postCreate)
+        {
+            try 
+            { 
+                if (id <= 0)
+                {
+                    return StatusCode(StatusCodes.Status400BadRequest, new
+                    {
+                        message = "Invalid Community ID was sent from the client"
+                    });
+                }
+
+                if (postCreate == null)
+                {
+                    return StatusCode(StatusCodes.Status400BadRequest, new
+                    {
+                        message = "Data from request body is null."
+                    });
+                }                
+
+                // Check if the ID passed by the Client does exist on the database
+                if (_repository.Community.GetCommunityById(id) == null)
+                {
+                    return StatusCode(StatusCodes.Status404NotFound, new
+                    {
+                        message = "A Community with this ID doesn't exist on the database"
+                    });
+                }
+
+                Post post = _mapper.Map<PostCreateDto, Post>(postCreate);
+
+                // Added values left to complete the Post model
+                post.CreatedDate = DateTime.Now;
+                post.ModifiedDate = DateTime.Now;
+                post.CommunityId = id;
+
+                _repository.Post.AddPostToCommunity(post);
+                _repository.Save();
+
+                PostDto postResult = _mapper.Map<Post, PostDto>(post);
+
+                return StatusCode(StatusCodes.Status201Created, new
+                {
+                    body = postResult,
+                    message = "Post successfully registered on the Community"
+                });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    message = "A error has ocurred in the service." + $"\n{e}"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Method to register when a User has followed a specific Community
+        /// </summary>        
+        /// <returns></returns>
+        /// <response code="201">User was added to this community</response>
+        /// <response code="400">Request data body is null</response>
+        /// <response code="400">User is already on this community</response>
+        // POST: api/Communities/follow
+        [ProducesResponseType(StatusCodes.Status201Created, Type = null)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = null)]
+        [HttpPost("follow")]
+        public IActionResult AddUserToCommunity([FromBody] UserCommunityCreateDto userCommunityCreate)
+        {
+            try
+            {
+                if (userCommunityCreate == null)
+                {
+                    return StatusCode(StatusCodes.Status400BadRequest, new
+                    {
+                        message = "Data sent from client cannot be null."
+                    });
+                }
+
+                // Checking if user is already on this community
+                var isUserOnCommunity = _repository.UserCommunity.FindByCondition(user => user.CommunityId.Equals(userCommunityCreate.CommunityId) && user.UserId.Equals(userCommunityCreate.UserId)).FirstOrDefault();
+
+                if (isUserOnCommunity != null)
+                {
+                    return StatusCode(StatusCodes.Status400BadRequest, new
+                    {
+                        message = "User is already on this community"
+                    });
+                }
+
+                var userCommunity = _mapper.Map<UserCommunityCreateDto, UserCommunity>(userCommunityCreate);
+                userCommunity.UserId = userCommunityCreate.UserId;
+
+                _repository.UserCommunity.Create(userCommunity);
+                _repository.Save();
+
+                return StatusCode(StatusCodes.Status201Created, new
+                {
+                    message = "User was added to this community."
+                });
+            }
+            catch
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    message = "A error has ocurred in the service."
+                });
+            }
+        }
+
+        /// <summary>
+        /// Unfollow User from a specific Community
+        /// </summary>        
+        /// <returns></returns>
+        // GET: api/Communities/follow
+        [ProducesResponseType(StatusCodes.Status200OK, Type = null)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = null)]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = null)]
+        [HttpDelete("follow")]
+        public IActionResult RemoveUserFromCommunity([FromBody] UserCommunityDeleteDto userCommunityDelete)
+        {
+            try
+            {
+                if (userCommunityDelete == null)
+                {
+                    return StatusCode(StatusCodes.Status400BadRequest, new
+                    {
+                        message = "Invalid parameters were send."
+                    });
+                }
+
+                var userCommunity = _repository.UserCommunity.FindByCondition(register => register.CommunityId.Equals(userCommunityDelete.CommunityId) && register.UserId.Equals(userCommunityDelete.UserId)).FirstOrDefault();
+
+                if (userCommunity == null)
+                {
+                    return StatusCode(StatusCodes.Status404NotFound, new
+                    {
+                        message = "Nothing was found on database, try another User and Community ID"
+                    });
+                }
+
+                _repository.UserCommunity.Delete(userCommunity);
+                _repository.Save();
+
+                return StatusCode(StatusCodes.Status200OK, new
+                {
+                    message = "User was removed from this Community successfully"
+                });
+            }
+            catch
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
