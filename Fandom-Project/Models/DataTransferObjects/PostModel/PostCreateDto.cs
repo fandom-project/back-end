@@ -5,6 +5,9 @@ namespace Fandom_Project.Models.DataTransferObjects.PostModel
     public class PostCreateDto
     {
         [Required]
+        public int UserId { get; set; }
+
+        [Required]
         [StringLength(255)]
         public string Title { get; set; }
 
@@ -13,11 +16,7 @@ namespace Fandom_Project.Models.DataTransferObjects.PostModel
         public string Type { get; set; }
 
         [Required]
-        [StringLength(255)]
-        public string Author { get; set; }
-
-        [Required]
         [StringLength(1000)]
-        public string Text { get; set; }               
+        public string Text { get; set; }      
     }
 }

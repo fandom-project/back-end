@@ -501,11 +501,9 @@ namespace Fandom_Project.Controllers
                     {
                         message = "Invalid Community ID was sent from the client"
                     });
-                }
+                }                
 
-                Community isCommunityOnDatabase = _repository.Community.GetCommunityById(id);
-
-                if (isCommunityOnDatabase == null)
+                if (_repository.Community.GetCommunityById(id) == null)
                 {
                     return StatusCode(StatusCodes.Status404NotFound, new
                     {
@@ -525,7 +523,15 @@ namespace Fandom_Project.Controllers
 
                 foreach(var index in posts)
                 {
-                    postsResult.Add(_mapper.Map<Post, PostDto>(index));
+                    postsResult.Add(_mapper.Map<Post, PostDto>(index));                    
+                }
+
+                IEnumerable<User> tempUserList = _repository.User.GetAllUsers();
+
+                foreach(var index in postsResult)
+                {
+                    // Including the AuthorName (UserName) to every object on the list
+                    index.AuthorName = tempUserList.Where(user => user.UserId.Equals(index.UserId)).Select(user => user.FullName).FirstOrDefault();
                 }
                 
                 return StatusCode(StatusCodes.Status200OK, new
@@ -548,35 +554,45 @@ namespace Fandom_Project.Controllers
         /// </summary>
         /// <returns></returns>
         /// <response code="201">Post successfully registered on the Community</response>
-        /// <response code="400">Invalid Community ID was sent from the client</response>
+        /// <response code="400">Invalid Community ID or User ID was sent from the client</response>
         /// <response code="400">Data from request body is null.</response>
         /// <response code="404">A Community with this ID doesn't exist on the database</response>
         // POST: api/Communities/{id}/posts
-        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(PostDto))]
+        [ProducesResponseType(StatusCodes.Status201Created, Type = null)]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = null)]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = null)]
         [HttpPost("{id}/posts")]
         public IActionResult AddPostToCommunity(int id, [FromBody] PostCreateDto postCreate)
         {
             try 
-            { 
-                if (id <= 0)
-                {
-                    return StatusCode(StatusCodes.Status400BadRequest, new
-                    {
-                        message = "Invalid Community ID was sent from the client"
-                    });
-                }
-
+            {
                 if (postCreate == null)
                 {
                     return StatusCode(StatusCodes.Status400BadRequest, new
                     {
                         message = "Data from request body is null."
                     });
-                }                
+                }
 
-                // Check if the ID passed by the Client does exist on the database
+                // Checking if any IDs passed by the Client are valid
+                if (id <= 0 || postCreate.UserId <= 0)
+                {
+                    return StatusCode(StatusCodes.Status400BadRequest, new
+                    {
+                        message = "Invalid Community ID or User ID was sent from the client."
+                    });
+                }
+
+                // Check if the User ID passed by the Client does exist on the database
+                if (_repository.User.GetUserById(postCreate.UserId) == null)
+                {
+                    return StatusCode(StatusCodes.Status404NotFound, new
+                    {
+                        message = "User ID was not found on the database, try another."
+                    });
+                }                                             
+
+                // Check if the Community ID passed by the Client does exist on the database
                 if (_repository.Community.GetCommunityById(id) == null)
                 {
                     return StatusCode(StatusCodes.Status404NotFound, new
@@ -595,11 +611,11 @@ namespace Fandom_Project.Controllers
                 _repository.Post.AddPostToCommunity(post);
                 _repository.Save();
 
-                PostDto postResult = _mapper.Map<Post, PostDto>(post);
+                //PostDto postResult = _mapper.Map<Post, PostDto>(post);
 
                 return StatusCode(StatusCodes.Status201Created, new
                 {
-                    body = postResult,
+                    //body = postResult,
                     message = "Post successfully registered on the Community"
                 });
             }
