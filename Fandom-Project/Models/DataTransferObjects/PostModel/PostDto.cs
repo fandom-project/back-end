@@ -1,7 +1,7 @@
 ﻿namespace Fandom_Project.Models.DataTransferObjects.PostModel
 {
     public class PostDto
-    {
+    {        
         public int UserId { get; set; }
         public string AuthorName { get; set; }
         public string Title { get; set; }

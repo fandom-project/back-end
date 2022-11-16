@@ -11,7 +11,12 @@ namespace Fandom_Project.Repository
         public void AddUserToCommunity(UserCommunity userCommunity)
         {
             Create(userCommunity);
-        }        
+        }      
+        
+        public IEnumerable<UserCommunity> GetAllUserCommunities()
+        {
+            return FindAll().ToList();
+        }
 
         public IEnumerable<UserCommunity> GetCommunitiesByUser(int userId)
         {

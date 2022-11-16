@@ -5,6 +5,7 @@ namespace Fandom_Project.Repository.Interfaces
     public interface IUserCommunityRepository : IRepositoryBase<UserCommunity>
     {        
         IEnumerable<UserCommunity> GetCommunitiesByUser(int userId);
+        public IEnumerable<UserCommunity> GetAllUserCommunities();
         IEnumerable<UserCommunity> GetUsersByCommunity(int communityId);
         void AddUserToCommunity(UserCommunity userCommunity);
         void UpdateUserRoleOnCommunity(UserCommunity userCommunity);

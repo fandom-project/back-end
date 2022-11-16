@@ -6,7 +6,7 @@ namespace Fandom_Project.Models
     [Table("post")]
     public class Post
     {
-        [Key]
+        [Key]        
         public int PostId { get; set; }
         public string Title { get; set; }        
         public string Type { get; set; }     
