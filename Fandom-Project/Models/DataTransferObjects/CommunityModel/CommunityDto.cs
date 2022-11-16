@@ -4,6 +4,8 @@
     {
         public int CommunityId { get; set; }        
         public string Name { get; set; }
+        public string OwnerName { get; set; }
+        public int OwnerId { get; set; }
         public string CategoryName { get; set; }
         public DateTime CreatedDate { get; set; }
         public DateTime ModifiedDate { get; set; }

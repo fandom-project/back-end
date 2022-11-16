@@ -46,8 +46,11 @@ namespace Fandom_Project.Controllers
         {
             try
             {
-                _logger.LogInformation($"[{DateTime.Now}] LOG: Requesting GET api/community");
-                var communities = _repository.Community.GetAllCommunities();
+
+                // Saving all information in multiple variables so we don't need to do multiple requests to the database  
+                IEnumerable<Community> communities = _repository.Community.GetAllCommunities();
+                IEnumerable<UserCommunity> userCommunities = _repository.UserCommunity.GetAllUserCommunities(); // All data about Users following Communities
+                IEnumerable<User> usersList = _repository.User.GetAllUsers();
 
                 if (communities.Count() == 0)
                 {
@@ -67,8 +70,18 @@ namespace Fandom_Project.Controllers
                 // Retrieving the category name for each community on the database
                 foreach (var index in communityResult)
                 {
-                    var categoryId = communities.Where(community => community.CommunityId == index.CommunityId).Select(community => community.CategoryId).FirstOrDefault();                    
-                    index.CategoryName = Convert.ToString(categoriesList.Where(category => category.CategoryId.Equals(categoryId)).Select(category => category.Name).FirstOrDefault());
+                    var categoryId = communities.Where(community => community.CommunityId == index.CommunityId)
+                                                .Select(community => community.CategoryId)
+                                                .FirstOrDefault();                    
+                    index.CategoryName = categoriesList.Where(category => category.CategoryId.Equals(categoryId))
+                                                       .Select(category => category.Name)
+                                                       .FirstOrDefault();
+                    var ownerInformation = usersList.Join(userCommunities, user => user.UserId, userCommunity => userCommunity.UserId, (user, userCommunity) => new { User = user, UserCommunity = userCommunity })
+                                                    .Where(filter => filter.UserCommunity.CommunityId.Equals(index.CommunityId) && filter.UserCommunity.Role.Equals("Owner"))
+                                                    .Select(user => new { user.User.FullName, user.User.UserId })
+                                                    .FirstOrDefault();
+                    index.OwnerName = ownerInformation.FullName;
+                    index.OwnerId = ownerInformation.UserId;
                 }               
 
                 return StatusCode(StatusCodes.Status200OK, new
@@ -103,13 +116,8 @@ namespace Fandom_Project.Controllers
             try
             {
                 _logger.LogInformation($"[{DateTime.Now}] LOG: Requesting GET api/communities/{id}");
-                var community = _repository.Community.GetCommunityById(id);
+                var community = _repository.Community.GetCommunityById(id);              
 
-                //TODO: Add validation to check if ID is a valid number (ex: '2=' is not valid)
-                //if(id.)
-                //{
-                //    return StatusCode(StatusCodes.Status404NotFound, new { message = $"ID with value {id} is not valid." });
-                //}
                 if (community == null)
                 {
                     _logger.LogInformation($"[{DateTime.Now}] LOG: Community with ID {id} was not found.");
@@ -117,14 +125,18 @@ namespace Fandom_Project.Controllers
                     {
                         message = $"Community was not found."
                     });
-                }
-
-                _logger.LogInformation($"[{DateTime.Now}] LOG: Returned selected Community from the database.");
+                }                
                 
-                var categoryName = _repository.Category.FindByCondition(category => category.CategoryId == community.CategoryId).FirstOrDefault(); // Returning the Category name instead of the ID
+                CommunityDto communityResult = _mapper.Map<CommunityDto>(community);
                 
-                var communityResult = _mapper.Map<CommunityDto>(community);
+                // Adding information left to complete the response model
+                Category categoryName = _repository.Category.FindByCondition(category => category.CategoryId == community.CategoryId).FirstOrDefault(); // Returning the Category name instead of the ID
                 communityResult.CategoryName = categoryName.Name;
+                
+                UserCommunity userCommunities = _repository.UserCommunity.FindByCondition(userCommunity => userCommunity.CommunityId.Equals(id) && userCommunity.Role.Equals("Owner")).FirstOrDefault();
+                User communityOwner = _repository.User.GetUserById(userCommunities.UserId);
+                communityResult.OwnerName = communityOwner.FullName;
+                communityResult.OwnerId = communityOwner.UserId;                
                 
                 return StatusCode(StatusCodes.Status200OK, new
                 {
@@ -461,6 +473,11 @@ namespace Fandom_Project.Controllers
 
                 var communityResult = _mapper.Map<CommunityDto>(community);
                 communityResult.CategoryName = categoryName.Name;
+
+                UserCommunity userCommunities = _repository.UserCommunity.FindByCondition(userCommunity => userCommunity.CommunityId.Equals(community.CommunityId) && userCommunity.Role.Equals("Owner")).FirstOrDefault();
+                User communityOwner = _repository.User.GetUserById(userCommunities.UserId);
+                communityResult.OwnerName = communityOwner.FullName;
+                communityResult.OwnerId = communityOwner.UserId;
 
                 return StatusCode(StatusCodes.Status200OK, new
                 {

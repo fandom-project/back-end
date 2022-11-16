@@ -5,6 +5,7 @@ using AutoMapper;
 using Fandom_Project.Models.DataTransferObjects.UserModel;
 using Fandom_Project.Models.DataTransferObjects.UserCommunityModel;
 using Fandom_Project.Models.DataTransferObjects.CommunityModel;
+using System.Linq;
 
 namespace Fandom_Project.Controllers
 {
@@ -427,64 +428,157 @@ namespace Fandom_Project.Controllers
                 });
             }
         }
-        
+
         /// <summary>
         /// Returns all Communities a specific User has followed
         /// </summary>
+        /// <remarks>
+        /// Examples of returnType:
+        /// - <b>follower</b> = All communities that the user is registered into it with full details
+        /// - <b>follower-simple</b> = All communities that the user is registered into it with only the Community IDs
+        /// - <b>owner</b> = All communities that the user has role = 'Owner', with full details
+        /// - <b>owner-simple</b> = All communities that the user has role = 'Owner', with only the Community IDs
+        /// </remarks>
         /// <param name="id"></param>
+        /// <param name="returnType"></param>
         /// <returns></returns>
-        /// <response code="200">Returned all communities of this user</response>
-        /// <response code="204">This user has no communities followed</response>
+        /// <response code="200">Returned all communities of this user</response>        
         /// <response code="400">User ID was not found on the database</response>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(CommunityDto))]
-        [ProducesResponseType(StatusCodes.Status204NoContent, Type = null)]
+        /// <response code="404">This user has no communities followed</response>
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(CommunityDto))]        
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = null)]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = null)]
+        // GET: api/Users/{id}/communities?returnType={returnType}
         [HttpGet("{id}/communities")]
-        public IActionResult GetCommunitiesByUser(int id)
-        {           
-            var isUserOnDatabase = _repository.User.FindByCondition(user => user.UserId.Equals(id)).FirstOrDefault();
+        public IActionResult GetCommunitiesByUser(int id, [FromQuery] string returnType)
+        {
+            returnType = returnType.ToLower(); // Validation so the key word is always on the same pattern
 
-            if(isUserOnDatabase == null)
+            if(_repository.User.FindByCondition(user => user.UserId.Equals(id)).FirstOrDefault() == null)
             {
                 return StatusCode(StatusCodes.Status400BadRequest, new
                 {
                     message = "Cannot find a user with this ID on the database."
                 });
-            }
+            }            
 
-            var communities = _repository.UserCommunity.GetCommunitiesByUser(id);
+            // Saving all information in multiple variables so we don't need to do multiple requests to the database  
+            IEnumerable<Category> categoriesList = _repository.Category.GetAllCategories();
+            IEnumerable<User> usersList = _repository.User.GetAllUsers();
+            IEnumerable<UserCommunity> communities = _repository.UserCommunity.GetAllUserCommunities(); // All data about Users following Communities
 
-            if(communities.Count() == 0)
+            IEnumerable<UserCommunity> communitiesFollowed = communities.Where(userCommunity => userCommunity.UserId.Equals(id)).ToList();
+
+            if(communitiesFollowed.Count() == 0)
             {
-                return StatusCode(StatusCodes.Status204NoContent, new
+                return StatusCode(StatusCodes.Status404NotFound, new
                 {                    
                     message = "This user has no communities followed."
                 });
+            }            
+
+            var communitiesDetails = new List<Community>(); // Temporary list that will hold all the response information before we convert using _mapper      
+            
+            if (returnType == "follower-simple" || returnType == "follower")
+            {
+                // TODO: This need to change to avoid multiple requests to the Database
+                foreach (var index in communitiesFollowed)
+                {
+                    communitiesDetails.Add(_repository.Community.GetCommunityById(index.CommunityId));
+                }
+
+                if(returnType == "follower-simple")
+                {
+                    List<CommunitySimpleDto> communitySimpleResult = _mapper.Map<List<CommunitySimpleDto>>(communitiesDetails);
+
+                    return StatusCode(StatusCodes.Status200OK, new
+                    {
+                        body = communitySimpleResult,
+                        message = "Returned all communities of this user."
+                    });
+                }
+
+                var communityResult = _mapper.Map<IEnumerable<CommunityDto>>(communitiesDetails);
+                List<int> communitiesIdList = communities.Select(userCommunity => userCommunity.CommunityId).ToList(); // A list of all CommunityId related to what the User follows, so we can track it's owner                
+
+                // Including the rest of the information to complete the response model
+                foreach (var index in communityResult)
+                {                    
+                    int categoryId = communitiesDetails.Where(community => community.CommunityId == index.CommunityId)
+                                                       .Select(community => community.CategoryId)
+                                                       .FirstOrDefault();
+                    index.CategoryName = categoriesList.Where(category => category.CategoryId.Equals(categoryId))
+                                                       .Select(category => category.Name)
+                                                       .FirstOrDefault();                    
+                    var ownerInformation = usersList.Join(communities, user => user.UserId, userCommunity => userCommunity.UserId, (user, userCommunity) => new { User = user, UserCommunity = userCommunity })
+                                                    .Where(filter => filter.UserCommunity.CommunityId.Equals(index.CommunityId) && filter.UserCommunity.Role.Equals("Owner"))
+                                                    .Select(user => new { user.User.FullName, user.User.UserId })
+                                                    .FirstOrDefault();
+                    index.OwnerName = ownerInformation.FullName;
+                    index.OwnerId = ownerInformation.UserId;
+                }
+
+                return StatusCode(StatusCodes.Status200OK, new
+                {
+                    body = communityResult,
+                    message = "Returned all communities of this user."
+                });
             }
 
-            var communitiesDetails = new List<Community>();
-
-            foreach(var index in communities)
+            // In case returnType is "owner" or "owner-simple"
+            else
             {
-                communitiesDetails.Add(_repository.Community.GetCommunityById(index.CommunityId));
-            }
+                foreach (var index in communitiesFollowed)
+                {
+                    if (index.Role == "Owner")
+                    {
+                        communitiesDetails.Add(_repository.Community.GetCommunityById(index.CommunityId));
+                    }
+                }
 
-            var communityResult = _mapper.Map<IEnumerable<CommunityDto>>(communitiesDetails);
+                if(communitiesDetails.Count() == 0)
+                {
+                    return StatusCode(StatusCodes.Status404NotFound, new
+                    {
+                        message = "This user does not own a community."
+                    });
+                }
 
-            var categoriesList = _repository.Category.GetAllCategories(); // Saving all categories in a variable so we don't need to keep checking database          
+                if (returnType == "owner-simple")
+                {
+                    List<CommunitySimpleDto> communitySimpleResult = _mapper.Map<List<CommunitySimpleDto>>(communitiesDetails);
 
-            // Retrieving the category name for each community on the database
-            foreach (var index in communityResult)
-            {
-                var categoryId = communitiesDetails.Where(community => community.CommunityId == index.CommunityId).Select(community => community.CategoryId).FirstOrDefault();
-                index.CategoryName = Convert.ToString(categoriesList.Where(category => category.CategoryId.Equals(categoryId)).Select(category => category.Name).FirstOrDefault());
-            }
+                    return StatusCode(StatusCodes.Status200OK, new
+                    {
+                        body = communitySimpleResult,
+                        message = "Returned all communities that this User is owner."
+                    });
+                }
+                
+                var communityResult = _mapper.Map<IEnumerable<CommunityDto>>(communitiesDetails);
 
-            return StatusCode(StatusCodes.Status200OK, new
-            {
-                body = communityResult,
-                message = "Returned all communities of this user."
-            });
+                // Retrieving the category name for each community on the database
+                foreach (var index2 in communityResult)
+                {
+                    var categoryId = communitiesDetails.Where(community => community.CommunityId == index2.CommunityId)
+                                                       .Select(community => community.CategoryId)
+                                                       .FirstOrDefault();
+                    index2.CategoryName = categoriesList.Where(category => category.CategoryId.Equals(categoryId))
+                                                        .Select(category => category.Name)
+                                                        .FirstOrDefault();
+                    var ownerInformation = usersList.Where(user => user.UserId.Equals(id))
+                                                    .Select(user => new { user.FullName, user.UserId })
+                                                    .FirstOrDefault();
+                    index2.OwnerName = ownerInformation.FullName;
+                    index2.OwnerId = ownerInformation.UserId;
+                }
+
+                return StatusCode(StatusCodes.Status200OK, new
+                {
+                    body = communityResult,
+                    message = "Returned all communities that this User is owner."
+                });                
+            }            
         }
 
         /// <summary>
