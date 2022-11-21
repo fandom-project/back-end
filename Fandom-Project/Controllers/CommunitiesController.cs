@@ -14,7 +14,7 @@ using System.Collections;
 using Fandom_Project.Models.DataTransferObjects.UserModel;
 using Fandom_Project.Models.DataTransferObjects.UserCommunityModel;
 using Fandom_Project.Models.DataTransferObjects.PostModel;
-using Fandom_Project.Models.DataTransferObjects.EventModel;
+//using Fandom_Project.Models.DataTransferObjects.EventModel;
 
 namespace Fandom_Project.Controllers
 {
@@ -766,7 +766,7 @@ namespace Fandom_Project.Controllers
         /// <response code="404">Community was not found</response>
         /// <response code="404">This Community don't have Events</response>
         // GET: api/communities/{id}/events
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(EventDto))]
+        /*[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(EventDto))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = null)]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = null)]
         [HttpGet("{id}/events")]
@@ -823,6 +823,6 @@ namespace Fandom_Project.Controllers
                     message = "A error has ocurred in the service."
                 });
             }
-        }
+        }*/
     }
 }
