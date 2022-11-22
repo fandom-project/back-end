@@ -15,7 +15,7 @@ namespace Fandom_Project.Repository
 
         public IEnumerable<Post> GetPostsByCommunity(int communityId)
         {
-            return FindByCondition(post => post.CommunityId.Equals(communityId)).ToList();
+            return FindByCondition(post => post.CommunityId.Equals(communityId)).OrderByDescending(post => post.CreatedDate).ToList();
         }        
 
         public void RemovePostFromCommunity(Post post)
