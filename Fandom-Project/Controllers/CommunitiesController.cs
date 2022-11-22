@@ -289,6 +289,7 @@ namespace Fandom_Project.Controllers
                     communityModel.ModifiedDate = DateTime.Now;
                     communityModel.Slug = communityModel.Name.Replace(" ", "-").ToLower();
                     communityModel.MemberCount = 1;
+                    communityModel.PostCount = 0;
 
                     // Adding +1 to Category counter
                     var categoryUpdate = _repository.Category.FindByCondition(category => category.CategoryId == community.CategoryId).FirstOrDefault();
@@ -578,34 +579,34 @@ namespace Fandom_Project.Controllers
         /// </summary>
         /// <returns></returns>
         /// <response code="201">Post successfully registered on the Community</response>
-        /// <response code="400">Invalid Community ID or User ID was sent from the client</response>
-        /// <response code="400">Data from request body is null.</response>
-        /// <response code="404">A Community with this ID doesn't exist on the database</response>
-        // POST: api/Communities/{id}/posts
+        /// <response code="400">Invalid Community Slug or User ID was sent from the client</response>        
+        /// <response code="400">Data from request body is null</response>
+        /// <response code="404">A Community with this Slug doesn't exist on the database</response>
+        // POST: api/Communities/{slug}/posts
         [ProducesResponseType(StatusCodes.Status201Created, Type = null)]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = null)]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = null)]
-        [HttpPost("{id}/posts")]
-        public IActionResult AddPostToCommunity(int id, [FromBody] PostCreateDto postCreate)
+        [HttpPost("{slug}/posts")]
+        public IActionResult AddPostToCommunity(string slug, [FromBody] PostCreateDto postCreate)
         {
             try 
             {
+                // Checking if any IDs or Slug passed by the Client are valid
+                if (slug == null || postCreate.UserId <= 0)
+                {
+                    return StatusCode(StatusCodes.Status400BadRequest, new
+                    {
+                        message = "Invalid Community Slug or User ID was sent from the client."
+                    });
+                }
+
                 if (postCreate == null)
                 {
                     return StatusCode(StatusCodes.Status400BadRequest, new
                     {
-                        message = "Data from request body is null."
+                        message = "Data from request body is null"
                     });
-                }
-
-                // Checking if any IDs passed by the Client are valid
-                if (id <= 0 || postCreate.UserId <= 0)
-                {
-                    return StatusCode(StatusCodes.Status400BadRequest, new
-                    {
-                        message = "Invalid Community ID or User ID was sent from the client."
-                    });
-                }
+                }               
 
                 // Check if the User ID passed by the Client does exist on the database
                 if (_repository.User.GetUserById(postCreate.UserId) == null)
@@ -614,14 +615,16 @@ namespace Fandom_Project.Controllers
                     {
                         message = "User ID was not found on the database, try another."
                     });
-                }                                             
+                }
+
+                Community community = _repository.Community.GetCommunityBySlug(slug); // Creating this variable so we can update PostCount later
 
                 // Check if the Community ID passed by the Client does exist on the database
-                if (_repository.Community.GetCommunityById(id) == null)
+                if (community == null)
                 {
                     return StatusCode(StatusCodes.Status404NotFound, new
                     {
-                        message = "A Community with this ID doesn't exist on the database"
+                        message = "A Community with this Slug doesn't exist on the database"
                     });
                 }
 
@@ -630,9 +633,13 @@ namespace Fandom_Project.Controllers
                 // Added values left to complete the Post model
                 post.CreatedDate = DateTime.Now;
                 post.ModifiedDate = DateTime.Now;
-                post.CommunityId = id;
+                post.CommunityId = community.CommunityId;
+
+                // Updating PostCount on the Community
+                community.PostCount += 1;
 
                 _repository.Post.AddPostToCommunity(post);
+                _repository.Community.Update(community);
                 _repository.Save();
 
                 //PostDto postResult = _mapper.Map<Post, PostDto>(post);
