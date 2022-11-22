@@ -288,7 +288,7 @@ namespace Fandom_Project.Controllers
                     communityModel.CreatedDate = DateTime.Now;
                     communityModel.ModifiedDate = DateTime.Now;
                     communityModel.Slug = communityModel.Name.Replace(" ", "-").ToLower();
-                    communityModel.MemberCount = 0;
+                    communityModel.MemberCount = 1;
 
                     // Adding +1 to Category counter
                     var categoryUpdate = _repository.Category.FindByCondition(category => category.CategoryId == community.CategoryId).FirstOrDefault();
@@ -689,7 +689,12 @@ namespace Fandom_Project.Controllers
                 var userCommunity = _mapper.Map<UserCommunityCreateDto, UserCommunity>(userCommunityCreate);
                 userCommunity.UserId = userCommunityCreate.UserId;
 
+                // Updating MemberCount on the Community
+                Community community = _repository.Community.GetCommunityById(userCommunityCreate.CommunityId);
+                community.MemberCount += 1;
+
                 _repository.UserCommunity.Create(userCommunity);
+                _repository.Community.Update(community);
                 _repository.Save();
 
                 return StatusCode(StatusCodes.Status201Created, new
@@ -740,7 +745,12 @@ namespace Fandom_Project.Controllers
                     });
                 }
 
+                // Updating MemberCount on the Community
+                Community community = _repository.Community.GetCommunityById(userCommunityDelete.CommunityId);
+                community.MemberCount -= 1;
+
                 _repository.UserCommunity.Delete(userCommunity);
+                _repository.Community.Update(community);
                 _repository.Save();
 
                 return StatusCode(StatusCodes.Status200OK, new
