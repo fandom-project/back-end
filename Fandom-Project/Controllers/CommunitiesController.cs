@@ -495,21 +495,22 @@ namespace Fandom_Project.Controllers
             }
         }
 
+        // TODO AJUSTAR ESSE MÉTODO NO SWAGGER
         /// <summary>
         /// Return all Posts registered on this Community
         /// </summary>
         /// <returns></returns>
         /// <response code="200">Retrived all Posts created for this Community</response>
-        /// <response code="204">There is no Posts registered to this Community</response>
-        /// <response code="400">Invalid Community ID was sent from the client</response>
-        /// <response code="404">A Community with this ID doesn't exist on the database</response>        
-        // GET: api/Communities/posts?slug={slug}
+        /// <response code="200">A Community with this Slug doesn't exist on the database</response>        
+        /// <response code="200">This Community don't have any Posts</response>
+        /// <response code="400">Invalid Community Slug was sent from the client</response>
+        // GET: api/Communities/{slug}/posts
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PostDto))]
-        [ProducesResponseType(StatusCodes.Status204NoContent, Type = null)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = null)]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = null)]
-        [HttpGet("posts")]
-        public IActionResult GetPostsBySlug([FromQuery] string slug)
+        [ProducesResponseType(StatusCodes.Status200OK, Type = null)]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = null)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = null)]        
+        [HttpGet("{slug}/posts")]
+        public IActionResult GetPostsByCommunitySlug(string slug)
         {
             try
             {
