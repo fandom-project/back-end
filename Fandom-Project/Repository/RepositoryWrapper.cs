@@ -12,7 +12,7 @@ namespace Fandom_Project.Repository
         private ICategoryRepository _category;
         private ICommunityRepository _community;
         private IUserCommunityRepository _userCommunity;
-        private IPostRepository _post;
+        private IPostRepository _post;        
 
         public IUserRepository User
         {
@@ -72,7 +72,7 @@ namespace Fandom_Project.Repository
                 }
                 return _post;
             }
-        }
+        }        
 
         public RepositoryWrapper(FandomContext fandomContext)
         {

@@ -7,8 +7,8 @@ namespace Fandom_Project.Repository.Interfaces
         IUserRepository User { get; }
         ICategoryRepository Category { get; }
         ICommunityRepository Community { get; }
-        IUserCommunityRepository UserCommunity { get; }
-        IPostRepository Post { get; }
+        IUserCommunityRepository UserCommunity { get; }        
+        IPostRepository Post { get; }        
         void Save();
         IDbContextTransaction BeginTransaction();
     }

@@ -14,7 +14,6 @@ using System.Collections;
 using Fandom_Project.Models.DataTransferObjects.UserModel;
 using Fandom_Project.Models.DataTransferObjects.UserCommunityModel;
 using Fandom_Project.Models.DataTransferObjects.PostModel;
-//using Fandom_Project.Models.DataTransferObjects.EventModel;
 
 namespace Fandom_Project.Controllers
 {
@@ -772,75 +771,6 @@ namespace Fandom_Project.Controllers
                     message = "A error has ocurred in the service."
                 });
             }
-        }
-
-        /// <summary>
-        /// Retrieve all Events created on a Community
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        /// <response code="200">Successfully returned all Events created on this Community</response>
-        /// <response code="400">Invalid Community ID was sent from client</response>
-        /// <response code="404">Community was not found</response>
-        /// <response code="404">This Community don't have Events</response>
-        //// GET: api/communities/{id}/events
-        //[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(EventDto))]
-        //[ProducesResponseType(StatusCodes.Status400BadRequest, Type = null)]
-        //[ProducesResponseType(StatusCodes.Status404NotFound, Type = null)]
-        //[HttpGet("{id}/events")]
-        //public IActionResult GetEventsByCommunity(int id)
-        //{
-        //    try
-        //    {
-        //        if (id <= 0)
-        //        {
-        //            return StatusCode(StatusCodes.Status400BadRequest, new
-        //            {
-        //                message = "Invalid Community ID was sent from client"
-        //            });
-        //        }
-
-        //        if (_repository.Community.GetCommunityById(id) == null)
-        //        {
-        //            return StatusCode(StatusCodes.Status404NotFound, new
-        //            {
-        //                message = "Community was not found"
-        //            });
-        //        }
-
-        //        IEnumerable<Event> events = _repository.Event.GetEventsByCommunity(id);
-
-        //        if(events.Count() == 0)
-        //        {
-        //            return StatusCode(StatusCodes.Status404NotFound, new
-        //            {
-        //                message = "This Community don't have Events"
-        //            });
-        //        }
-
-        //        IEnumerable<EventDto> eventsResult = _mapper.Map<IEnumerable<Event>, IEnumerable<EventDto>>(events);
-
-        //        IEnumerable<User> usersList = _repository.User.GetAllUsers(); // Saving all Users in 1 variable to avoid multiple requests to DB
-
-        //        // Adding the Author Name to the list by searching through our local User list
-        //        foreach(var index in eventsResult)
-        //        {
-        //            index.AuthorName = usersList.Where(user => user.UserId.Equals(index.UserId)).Select(user => user.FullName).FirstOrDefault();
-        //        }
-
-        //        return StatusCode(StatusCodes.Status200OK, new
-        //        {
-        //            body = eventsResult,
-        //            message = "Successfully returned all Events created on this Community"
-        //        });
-        //    }
-        //    catch
-        //    {
-        //        return StatusCode(StatusCodes.Status500InternalServerError, new
-        //        {
-        //            message = "A error has ocurred in the service."
-        //        });
-        //    }
-        //}
+        }        
     }
 }
