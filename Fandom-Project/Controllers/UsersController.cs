@@ -471,7 +471,7 @@ namespace Fandom_Project.Controllers
 
             if(communitiesFollowed.Count() == 0)
             {
-                return StatusCode(StatusCodes.Status404NotFound, new
+                return StatusCode(StatusCodes.Status200OK, new
                 {                    
                     message = "This user has no communities followed."
                 });
