@@ -538,7 +538,7 @@ namespace Fandom_Project.Controllers
 
                 if(communitiesDetails.Count() == 0)
                 {
-                    return StatusCode(StatusCodes.Status404NotFound, new
+                    return StatusCode(StatusCodes.Status200OK, new
                     {
                         message = "This user does not own a community."
                     });
