@@ -205,23 +205,17 @@ namespace Fandom_Project.Controllers
         public IActionResult CreateUser([FromBody] UserCreationDto user)
         {
             try
-            {
-                _logger.LogInformation($"[{DateTime.Now}] LOG: Requesting POST api/user");                
-
+            {               
                 if(user == null)
-                {
-                    _logger.LogError($"[{DateTime.Now}] ERROR: User object sent from client is null.");
+                {                    
                     return StatusCode(StatusCodes.Status400BadRequest, new
                     {
                         message = $"User object sent from client is null."
                     });
-                }
-
-                var isEmailOnDatabase = _repository.User.FindByCondition(userDb => userDb.Email.ToLower() == user.Email.ToLower()).FirstOrDefault();
+                }                
                 
-                if (isEmailOnDatabase != null)
-                {
-                    _logger.LogError($"[{DateTime.Now}] ERROR: Email already exists on database, choose another Email.");
+                if (_repository.User.FindByCondition(userDb => userDb.Email.ToLower() == user.Email.ToLower()).FirstOrDefault() != null)
+                {                    
                     return StatusCode(StatusCodes.Status400BadRequest, new
                     {                        
                         message = $"Email already exists on database, choose another Email."
@@ -233,11 +227,11 @@ namespace Fandom_Project.Controllers
                 userModel.CreatedDate = DateTime.Now;
                 userModel.ModifiedDate = DateTime.Now;
                 userModel.Slug = userModel.FullName.Replace(" ", "-").ToLower();
+                userModel.Slug = userModel.Slug.Replace(".", "");
 
                 _repository.User.CreateUser(userModel);
                 _repository.Save();
-
-                _logger.LogInformation($"[{DateTime.Now}] LOG: User was created.");                
+                            
                 return StatusCode(StatusCodes.Status201Created, new
                 {
                     body = userModel,
@@ -245,8 +239,7 @@ namespace Fandom_Project.Controllers
                 });            
             }
             catch (Exception e)
-            {
-                _logger.LogError($"[{DateTime.Now}] ERROR: {e}");
+            {                
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
                     message = "A error has ocurred in the service."
@@ -313,25 +306,14 @@ namespace Fandom_Project.Controllers
         public IActionResult UserAuthentication([FromBody] UserAuthenticationDto login)
         {
             try
-            {
-                _logger.LogInformation($"[{DateTime.Now}] LOG: Requesting POST api/user/authenticate");
-
+            {               
                 if (login == null)
-                {
-                    _logger.LogError($"[{DateTime.Now}] ERROR: Email or Password cannot be null.");
+                {                    
                     return StatusCode(StatusCodes.Status400BadRequest, new
                     {
                         message = "Email or Password cannot be null."
                     });
-                }
-                else if (!ModelState.IsValid)
-                {
-                    _logger.LogError($"[{DateTime.Now}] ERROR: Invalid data sent from client.");
-                    return StatusCode(StatusCodes.Status400BadRequest, new
-                    {
-                        message = "Invalid data sent from client."
-                    });
-                }
+                }                
 
                 var email = login.Email;
                 var password = login.Password;
@@ -339,15 +321,13 @@ namespace Fandom_Project.Controllers
                 var user = _repository.User.UserAuthentication(email, password);
 
                 if (user == null)
-                {
-                    _logger.LogError($"[{DateTime.Now}] ERROR: Invalid Email / Password was sent.");
+                {                    
                     return StatusCode(StatusCodes.Status404NotFound, new
                     {
                         message = "Invalid Email / Password was sent."
                     });
                 }
-
-                _logger.LogInformation($"[{DateTime.Now}] LOG: User with email {email} is authenticated.");
+                
                 var userResult = _mapper.Map<UserDto>(user);                
                 return StatusCode(StatusCodes.Status200OK, new
                 {
@@ -356,8 +336,7 @@ namespace Fandom_Project.Controllers
                 });
             }
             catch (Exception e)
-            {
-                _logger.LogError($"[{DateTime.Now}] ERROR: {e}");
+            {                
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
                     message = "A error has ocurred in the service."
