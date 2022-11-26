@@ -40,7 +40,7 @@ namespace Fandom_Project.Controllers
         /// <response code="200">Returned all Communities from the database</response>
         // GET: api/Communities
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(CommunityDto))]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = null)]
+        //[ProducesResponseType(StatusCodes.Status404NotFound, Type = null)]
         [HttpGet]
         public IActionResult GetAllCommunities()
         {
@@ -55,7 +55,7 @@ namespace Fandom_Project.Controllers
                 if (communities.Count() == 0)
                 {
                     _logger.LogInformation($"[{DateTime.Now}] LOG: No Community was found.");
-                    return StatusCode(StatusCodes.Status404NotFound, new
+                    return StatusCode(StatusCodes.Status200OK, new
                     {
                         message = "No Community was found in the database."
                     });
@@ -258,23 +258,17 @@ namespace Fandom_Project.Controllers
             using (var dbContextTransaction = _repository.BeginTransaction())
             {
                 try
-                {
-                    _logger.LogInformation($"[{DateTime.Now}] LOG: Requesting POST api/communities");
-
+                {                   
                     if (community == null)
-                    {
-                        _logger.LogError($"[{DateTime.Now}] ERROR: Community object sent from client is null.");
+                    {                        
                         return StatusCode(StatusCodes.Status400BadRequest, new
                         {
                             message = $"Community object sent from client is null."
                         });
-                    }
+                    }                    
 
-                    var isCommunityOnDatabase = _repository.Community.FindByCondition(communityDb => communityDb.Name.ToLower() == community.Name.ToLower()).FirstOrDefault();
-
-                    if (isCommunityOnDatabase != null)
-                    {
-                        _logger.LogError($"[{DateTime.Now}] ERROR: Community already exists on database, choose another name.");
+                    if (_repository.Community.FindByCondition(communityDb => communityDb.Name.ToLower() == community.Name.ToLower()).FirstOrDefault() != null)
+                    {                        
                         return StatusCode(StatusCodes.Status400BadRequest, new
                         {
                             message = $"Community already exists on database, choose another name."
