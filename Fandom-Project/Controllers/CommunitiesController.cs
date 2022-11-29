@@ -549,7 +549,9 @@ namespace Fandom_Project.Controllers
                 foreach(var index in postsResult)
                 {
                     // Including the AuthorName (UserName) to every object on the list
-                    index.AuthorName = tempUserList.Where(user => user.UserId.Equals(index.UserId)).Select(user => user.FullName).FirstOrDefault();
+                    index.AuthorName = tempUserList.Where(user => user.UserId.Equals(index.UserId))
+                                                   .Select(user => user.FullName)
+                                                   .FirstOrDefault();
                 }
                 
                 return StatusCode(StatusCodes.Status200OK, new
@@ -765,6 +767,6 @@ namespace Fandom_Project.Controllers
                     message = "A error has ocurred in the service."
                 });
             }
-        }        
+        }                
     }
 }

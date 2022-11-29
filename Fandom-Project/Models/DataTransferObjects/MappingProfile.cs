@@ -31,7 +31,8 @@ namespace Fandom_Project.Models.DataTransferObjects
 
             // Post mapping
             CreateMap<Post, PostDto>();
-            CreateMap<PostCreateDto, Post>();            
+            CreateMap<PostCreateDto, Post>();
+            CreateMap<Post, PostFollowDto>();
         }
     }
 }
