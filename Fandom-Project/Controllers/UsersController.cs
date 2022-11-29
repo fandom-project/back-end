@@ -6,6 +6,7 @@ using Fandom_Project.Models.DataTransferObjects.UserModel;
 using Fandom_Project.Models.DataTransferObjects.UserCommunityModel;
 using Fandom_Project.Models.DataTransferObjects.CommunityModel;
 using System.Linq;
+using Fandom_Project.Models.DataTransferObjects.PostModel;
 
 namespace Fandom_Project.Controllers
 {
@@ -612,6 +613,93 @@ namespace Fandom_Project.Controllers
             {                
                 message = "User role updated sucessfully"
             });
+        }
+
+        /// <summary>
+        /// Get all Posts related to each Community that the User is follower
+        /// </summary>
+        /// <param name="id"></param>
+        /// <response code="200">Successfully returned all posts related to communities the user has followed</response>
+        /// <response code="200">User with this ID was not found on the database</response>
+        /// <response code="200">All followed communities don't have any posts registered</response>
+        /// <response code="400">User ID was not found on the database</response>
+        /// <returns></returns>
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<PostFollowDto>))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = null)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = null)]
+        [HttpGet("{id}/feed")]
+        public IActionResult GetPostsFromCommunitiesFollowed(int id)
+        {
+            try
+            {
+                if (id <= 0)
+                {
+                    return StatusCode(StatusCodes.Status400BadRequest, new
+                    {
+                        message = "Invalid User ID was sent from client"
+                    });
+                }
+
+                if(_repository.User.GetUserById(id) == null)
+                {
+                    return StatusCode(StatusCodes.Status200OK, new
+                    {
+                        message = "User with this ID was not found on the database"
+                    });
+                }
+
+                // Saving all CommunityId that the User is 'Follower', so we can search all Posts related to each Community
+                List<UserCommunity> communitiesFollowed = _repository.UserCommunity.FindByCondition(userCommunity => userCommunity.UserId.Equals(id) && userCommunity.Role.Equals("Follower"))
+                                                                                   .ToList();
+
+                if (communitiesFollowed.Count() == 0)
+                {
+                    return StatusCode(StatusCodes.Status200OK, new
+                    {
+                        message = "All followed communities don't have any posts registered"
+                    });
+                }
+
+                IEnumerable<Post> postsList = _repository.Post.FindAll();
+                List<PostFollowDto> postsCommunityFollowed = new List<PostFollowDto>();
+
+                foreach (var index in communitiesFollowed)
+                {                    
+                    List<Post> tempPostList = postsList.Where(post => post.CommunityId.Equals(index.CommunityId))                                                       
+                                                       .OrderByDescending(post => post.CreatedDate)
+                                                       .ToList();  
+                    
+                    List<PostFollowDto> postDtos = _mapper.Map<List<Post>, List<PostFollowDto>>(tempPostList);
+                    postsCommunityFollowed.AddRange(postDtos);
+                }
+
+                IEnumerable<User> usersList = _repository.User.GetAllUsers();
+                IEnumerable<Community> communitiesList = _repository.Community.GetAllCommunities();
+
+                foreach (var index in postsCommunityFollowed)
+                {                    
+                    index.AuthorName = usersList.Where(user => user.UserId.Equals(index.UserId))
+                                                .Select(user => user.FullName)
+                                                .FirstOrDefault();
+                    index.CommunityCoverImageUrl = communitiesList.Where(community => community.CommunityId.Equals(index.CommunityId))
+                                                                  .Select(community => community.CoverImage)
+                                                                  .FirstOrDefault();
+                }                
+
+                return StatusCode(StatusCodes.Status200OK, new
+                {
+                    body = postsCommunityFollowed,
+                    message = "Successfully returned all posts related to communities the user has followed"
+                });
+                
+            }
+            catch (Exception e)
+            {                
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    message = $"A error has ocurred in the service.\n{e}"
+                });
+            }
         }
     }
 }
