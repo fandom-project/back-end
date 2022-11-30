@@ -4,7 +4,9 @@
     {
         public int PostId { get; set; }
         public int UserId { get; set; }
+        //public int CommunityId { get; set; }
         public string AuthorName { get; set; }
+        //public string CommunityName { get; set; }
         public string Title { get; set; }
         public string Type { get; set; }       
         public string Text { get; set; }

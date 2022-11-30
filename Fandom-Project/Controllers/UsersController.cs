@@ -447,9 +447,9 @@ namespace Fandom_Project.Controllers
             IEnumerable<User> usersList = _repository.User.GetAllUsers();
             IEnumerable<UserCommunity> communities = _repository.UserCommunity.GetAllUserCommunities(); // All data about Users following Communities
 
-            IEnumerable<UserCommunity> communitiesFollowed = communities.Where(userCommunity => userCommunity.UserId.Equals(id)).ToList();
+            IEnumerable<UserCommunity> communitiesFollowedOwned = communities.Where(userCommunity => userCommunity.UserId.Equals(id)).ToList();
 
-            if(communitiesFollowed.Count() == 0)
+            if(communitiesFollowedOwned.Count() == 0)
             {
                 return StatusCode(StatusCodes.Status200OK, new
                 {                    
@@ -462,9 +462,12 @@ namespace Fandom_Project.Controllers
             if (returnType == "follower-simple" || returnType == "follower")
             {
                 // TODO: This need to change to avoid multiple requests to the Database
-                foreach (var index in communitiesFollowed)
+                foreach (var index in communitiesFollowedOwned)
                 {
-                    communitiesDetails.Add(_repository.Community.GetCommunityById(index.CommunityId));
+                    if(index.Role == "Follower")
+                    {
+                        communitiesDetails.Add(_repository.Community.GetCommunityById(index.CommunityId));
+                    }                    
                 }
 
                 if(returnType == "follower-simple")
@@ -508,7 +511,7 @@ namespace Fandom_Project.Controllers
             // In case returnType is "owner" or "owner-simple"
             else
             {
-                foreach (var index in communitiesFollowed)
+                foreach (var index in communitiesFollowedOwned)
                 {
                     if (index.Role == "Owner")
                     {
@@ -683,6 +686,9 @@ namespace Fandom_Project.Controllers
                                                 .FirstOrDefault();
                     index.CommunityCoverImageUrl = communitiesList.Where(community => community.CommunityId.Equals(index.CommunityId))
                                                                   .Select(community => community.CoverImage)
+                                                                  .FirstOrDefault();
+                    index.CommunityName = communitiesList.Where(community => community.CommunityId.Equals(index.CommunityId))
+                                                                  .Select(community => community.Name)
                                                                   .FirstOrDefault();
                 }                
 

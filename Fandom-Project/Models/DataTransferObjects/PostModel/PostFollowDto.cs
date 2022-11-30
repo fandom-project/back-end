@@ -14,5 +14,6 @@
         public DateTime? EventDate { get; set; }
         public string? CoverImage { get; set; }
         public string CommunityCoverImageUrl { get; set; }
+        public string CommunityName { get; set; }
     }
 }
