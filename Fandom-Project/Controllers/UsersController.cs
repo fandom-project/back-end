@@ -684,6 +684,9 @@ namespace Fandom_Project.Controllers
                     index.CommunityCoverImageUrl = communitiesList.Where(community => community.CommunityId.Equals(index.CommunityId))
                                                                   .Select(community => community.CoverImage)
                                                                   .FirstOrDefault();
+                    index.CommunityName = communitiesList.Where(community => community.CommunityId.Equals(index.CommunityId))
+                                                                  .Select(community => community.Name)
+                                                                  .FirstOrDefault();
                 }                
 
                 return StatusCode(StatusCodes.Status200OK, new

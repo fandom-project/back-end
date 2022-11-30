@@ -545,6 +545,7 @@ namespace Fandom_Project.Controllers
                 }
 
                 IEnumerable<User> tempUserList = _repository.User.GetAllUsers();
+                //IEnumerable<Community> communitiesList = _repository.Community.GetAllCommunities();
 
                 foreach(var index in postsResult)
                 {
@@ -552,6 +553,9 @@ namespace Fandom_Project.Controllers
                     index.AuthorName = tempUserList.Where(user => user.UserId.Equals(index.UserId))
                                                    .Select(user => user.FullName)
                                                    .FirstOrDefault();
+                    //index.CommunityName = communitiesList.Where(community => community.CommunityId.Equals(index.CommunityId))
+                    //                                     .Select(community => community.Name)
+                    //                                     .FirstOrDefault();
                 }
                 
                 return StatusCode(StatusCodes.Status200OK, new
