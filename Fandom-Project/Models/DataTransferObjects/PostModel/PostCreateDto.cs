@@ -19,7 +19,7 @@ namespace Fandom_Project.Models.DataTransferObjects.PostModel
         [StringLength(65535)]
         public string Text { get; set; }
 
-        [StringLength(255)]
+        [StringLength(500)]
         public string? CoverImage { get; set; }
 
         public DateTime? EventDate { get; set; }

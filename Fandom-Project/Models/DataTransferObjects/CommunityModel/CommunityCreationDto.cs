@@ -17,10 +17,10 @@ namespace Fandom_Project.Models.DataTransferObjects.CommunityModel
         [StringLength(255)]
         public string? CoverImage { get; set; }
 
-        [StringLength(255)]
+        [StringLength(500)]
         public string? Description { get; set; }
 
-        [StringLength(255)]
+        [StringLength(500)]
         public string? BannerImage { get; set; }
     }
 }

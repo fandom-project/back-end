@@ -17,10 +17,10 @@ namespace Fandom_Project.Models.DataTransferObjects.UserModel
         [MaxLength(45, ErrorMessage = "The field Slug must have a maximum length of 45")]
         public string Slug { get; set; }
 
-        [MaxLength(255, ErrorMessage = "The field ProfileAvatar must have a maximum length of 255")]
+        [MaxLength(500, ErrorMessage = "The field ProfileAvatar must have a maximum length of 255")]
         public string? ProfileAvatar { get; set; }
 
-        [MaxLength(255, ErrorMessage = "The field Bio must have a maximum length of 255")]
+        [MaxLength(500, ErrorMessage = "The field Bio must have a maximum length of 255")]
         public string? Bio { get; set; }
     }
 }
