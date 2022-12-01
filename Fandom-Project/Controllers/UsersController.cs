@@ -659,7 +659,7 @@ namespace Fandom_Project.Controllers
                 {
                     return StatusCode(StatusCodes.Status200OK, new
                     {
-                        message = "All followed communities don't have any posts registered"
+                        message = "This user has no communities followed"
                     });
                 }
 
@@ -667,14 +667,14 @@ namespace Fandom_Project.Controllers
                 List<PostFollowDto> postsCommunityFollowed = new List<PostFollowDto>();
 
                 foreach (var index in communitiesFollowed)
-                {                    
-                    List<Post> tempPostList = postsList.Where(post => post.CommunityId.Equals(index.CommunityId))                                                       
-                                                       .OrderByDescending(post => post.CreatedDate)
-                                                       .ToList();  
-                    
+                {
+                    List<Post> tempPostList = postsList.Where(post => post.CommunityId.Equals(index.CommunityId)).ToList();                                                
                     List<PostFollowDto> postDtos = _mapper.Map<List<Post>, List<PostFollowDto>>(tempPostList);
                     postsCommunityFollowed.AddRange(postDtos);
                 }
+
+                postsCommunityFollowed = postsCommunityFollowed.OrderByDescending(post => post.CreatedDate)
+                                                               .ToList();
 
                 IEnumerable<User> usersList = _repository.User.GetAllUsers();
                 IEnumerable<Community> communitiesList = _repository.Community.GetAllCommunities();
